@@ -4,7 +4,14 @@ services:
     runtime: python
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements-prod.txt
+    # Build React frontend first, then install Python deps
+    buildCommand: |
+      # ── Install Node & build React frontend ──────────────────────
+      curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      apt-get install -y nodejs
+      cd frontend && npm ci && npm run build && cd ..
+      # ── Install Python dependencies ───────────────────────────────
+      pip install -r requirements-prod.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_ENV
@@ -27,5 +34,6 @@ services:
         value: false
       - key: SECRET_KEY
         generateValue: true
+      # Allow both the Vercel frontend URL and the Render URL itself
       - key: ALLOWED_ORIGINS
-        value: https://promptshield.vercel.app
+        value: https://promptshield.vercel.app,https://promptshield-cy8k.onrender.com

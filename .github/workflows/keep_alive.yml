@@ -1,0 +1,26 @@
+name: Keep Render Alive
+
+# Pings the Render health endpoint every 10 minutes to prevent
+# the free-tier service from spinning down after 15 min of inactivity.
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes, 24/7
+  workflow_dispatch:          # allow manual trigger
+
+jobs:
+  ping:
+    name: Ping Render Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          echo "Pinging Render backend to prevent cold start..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            https://promptshield-cy8k.onrender.com/api/v1/health)
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "✅ Backend is alive"
+          else
+            echo "⚠️  Backend returned HTTP $STATUS — it may still be waking up"
+          fi
