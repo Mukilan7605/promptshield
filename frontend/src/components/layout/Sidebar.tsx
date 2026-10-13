@@ -41,9 +41,17 @@ export default function Sidebar() {
   const [online, setOnline] = useState<boolean | null>(null);
 
   useEffect(() => {
-    getHealth()
-      .then(() => setOnline(true))
-      .catch(() => setOnline(false));
+    // Check immediately, then every 10 s so the indicator recovers
+    // after a Render free-tier cold start (can take 30–90 s).
+    const check = () => {
+      getHealth()
+        .then(() => setOnline(true))
+        .catch(() => setOnline(false));
+    };
+
+    check();
+    const id = setInterval(check, 10_000);
+    return () => clearInterval(id);
   }, []);
 
   return (

@@ -159,10 +159,16 @@ def create_app() -> FastAPI:
 
     # ── Middleware ────────────────────────────────────────────────────────
     app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+    # IMPORTANT: When allow_origins contains "*", allow_credentials MUST be
+    # False — browsers hard-reject "*" + credentials per the CORS spec.
+    _origins = settings.ALLOWED_ORIGINS
+    _credentials = "*" not in _origins  # False when wildcard is used
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGINS,
-        allow_credentials=True,
+        allow_origins=_origins,
+        allow_credentials=_credentials,
         allow_methods=["*"],
         allow_headers=["*"],
     )
