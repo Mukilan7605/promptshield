@@ -9,7 +9,9 @@ registers routers, middleware, and the full service lifecycle.
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
@@ -141,18 +143,29 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix="/api/v1")
 
     # ── Serve React frontend from frontend/dist ───────────────────────────
-    import os  # noqa: PLC0415
-    _dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
-    if os.path.isdir(_dist):
-        # Serve static assets (JS, CSS, images)
-        app.mount("/assets", StaticFiles(directory=os.path.join(_dist, "assets")), name="assets")
+    # Use cwd-relative path — on Render the working dir is always the repo root
+    _dist = Path.cwd() / "frontend" / "dist"
+    _assets = _dist / "assets"
+    _index = _dist / "index.html"
 
-        # Catch-all: serve index.html for all non-API routes (React Router)
-        @app.get("/{full_path:path}", include_in_schema=False)
-        async def serve_spa(full_path: str):
-            index = os.path.join(_dist, "index.html")
-            return FileResponse(index)
+    if _dist.is_dir() and _index.exists():
+        try:
+            app.mount("/assets", StaticFiles(directory=str(_assets)), name="assets")
+            log.info(f"Serving React frontend from: {_dist}")
+
+            @app.get("/{full_path:path}", include_in_schema=False)
+            async def serve_spa(full_path: str):  # noqa: ARG001
+                return FileResponse(str(_index))
+
+        except Exception as exc:
+            log.warning(f"Could not mount static files: {exc} — API-only mode")
+
+            @app.get("/", include_in_schema=False)
+            async def root_fallback():
+                return {"name": settings.APP_NAME, "docs": "/api/docs"}
     else:
+        log.info(f"No frontend dist found at {_dist} — serving API only")
+
         @app.get("/", include_in_schema=False)
         async def root():
             return {
