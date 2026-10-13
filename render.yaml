@@ -29,9 +29,11 @@ services:
         value: false
       - key: SECRET_KEY
         generateValue: true
-      # Allow the Render static site to call this API
+      # Allow all origins — the frontend URL on Render can have a random hash
+      # (e.g. promptshield-frontend-xy3k.onrender.com). Using * avoids CORS
+      # mismatches. Tighten this once the final URL is known.
       - key: ALLOWED_ORIGINS
-        value: https://promptshield-frontend.onrender.com,https://promptshield-cy8k.onrender.com
+        value: "*"
 
   # ── 2. Frontend — React/Vite (Render Static Site) ────────────
   - type: static-site
