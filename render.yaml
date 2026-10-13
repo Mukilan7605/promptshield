@@ -1,18 +1,12 @@
 services:
   - type: web
     name: promptshield-api
-    runtime: python
+    runtime: docker          # Use Dockerfile for Node + Python multi-stage build
     plan: free
     region: oregon
-    # Build React frontend first, then install Python deps
-    buildCommand: |
-      # ── Install Node & build React frontend ──────────────────────
-      curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-      apt-get install -y nodejs
-      cd frontend && npm ci && npm run build && cd ..
-      # ── Install Python dependencies ───────────────────────────────
-      pip install -r requirements-prod.txt
-    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    # Render will auto-detect and use the Dockerfile in the repo root.
+    # No buildCommand / startCommand needed — CMD in Dockerfile handles startup.
+    healthCheckPath: /api/v1/health
     envVars:
       - key: APP_ENV
         value: production
@@ -34,6 +28,7 @@ services:
         value: false
       - key: SECRET_KEY
         generateValue: true
-      # Allow both the Vercel frontend URL and the Render URL itself
+      # Allow both the Vercel URL and the Render URL itself
       - key: ALLOWED_ORIGINS
         value: https://promptshield.vercel.app,https://promptshield-cy8k.onrender.com
+

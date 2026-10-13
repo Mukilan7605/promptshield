@@ -103,4 +103,4 @@ desktop.ini
 *.swo
 
 # ── Docker ───────────────────────────────────────────────────
-.dockerignore
+# Note: .dockerignore is intentionally tracked in git (Render needs it)
