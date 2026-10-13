@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: promptshield-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: API_RELOAD
+        value: false
+      - key: LOG_FORMAT
+        value: json
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/promptshield.db
+      - key: ENABLE_RULE_BASED
+        value: true
+      - key: ENABLE_SEMANTIC_ANALYSIS
+        value: true
+      - key: ENABLE_ML_BASED
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://promptshield.vercel.app
