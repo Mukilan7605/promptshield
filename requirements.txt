@@ -1,8 +1,11 @@
+# Production requirements — ML packages excluded (ENABLE_ML_BASED=false on Render)
+# torch, transformers, tokenizers are not needed when only rule-based and semantic layers run.
+
 # ── Core Web Framework ───────────────────────────────────────
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
-python-multipart>=0.0.12      # Form / file uploads
-httpx>=0.27.0                 # Async HTTP client (for tests & external calls)
+python-multipart>=0.0.12
+httpx>=0.27.0
 
 # ── Pydantic v2 & Settings ───────────────────────────────────
 pydantic>=2.10.0
@@ -12,47 +15,23 @@ email-validator>=2.2.0
 # ── Database ─────────────────────────────────────────────────
 sqlalchemy[asyncio]>=2.0.36
 alembic>=1.14.0
-aiosqlite>=0.20.0             # Async SQLite driver
-greenlet>=3.0.0               # Required by sqlalchemy asyncio
-asyncpg>=0.30.0               # Async PostgreSQL driver (production-ready)
-
-# ── ML / NLP ─────────────────────────────────────────────────
-# NOTE: Python 3.14 wheels are used; scipy/scikit-learn DLLs are blocked by
-# Application Control on this machine — metrics are implemented in pure NumPy.
-torch>=2.14.0                  # CPU build: pip install torch --index-url https://download.pytorch.org/whl/cpu
-transformers==5.9.0            # Pinned: 5.x required for Python 3.14 compatibility
-                               # (patched dependency_versions_check.py to skip tokenizers upper-bound)
-tokenizers>=0.23.2             # Python 3.14 binary; transformers 5.9.0 patched to accept this
-huggingface-hub>=1.0.0
-safetensors>=0.4.0
-accelerate>=1.1.0              # Optional: distributed training / mixed precision
-numpy>=2.0.0                   # Pure-NumPy metrics (replaces scikit-learn)
-pandas>=2.2.0
-fastparquet>=2024.5.0         # Parquet support (pyarrow DLLs blocked by policy)
-pyyaml>=6.0.0                 # Training config loading
-
-# ── Security ─────────────────────────────────────────────────
-python-jose[cryptography]>=3.3.0   # JWT
-passlib[bcrypt]>=1.7.4
-slowapi>=0.1.9                # Rate limiting middleware
-
-# ── Logging & Observability ──────────────────────────────────
-structlog>=24.4.0
-rich>=13.9.0                  # Pretty console output (dev)
+aiosqlite>=0.20.0
+greenlet>=3.0.0
+asyncpg>=0.30.0
 
 # ── Utilities ────────────────────────────────────────────────
+numpy>=1.26.0
+pandas>=2.2.0
+pyyaml>=6.0.0
 python-dotenv>=1.0.0
-tenacity>=9.0.0               # Retry logic
-orjson>=3.10.0                # Fast JSON
+tenacity>=9.0.0
+orjson>=3.10.0
 
-# ── Testing ──────────────────────────────────────────────────
-pytest>=9.0.0
-pytest-asyncio>=1.0.0
-pytest-cov>=7.0.0
-factory-boy>=3.3.0
-Faker>=30.0.0
+# ── Security ─────────────────────────────────────────────────
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+slowapi>=0.1.9
 
-# ── Code Quality ─────────────────────────────────────────────
-ruff>=0.7.0
-mypy>=1.13.0
-pre-commit>=4.0.0
+# ── Logging ──────────────────────────────────────────────────
+structlog>=24.4.0
+rich>=13.9.0
