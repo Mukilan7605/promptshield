@@ -2,10 +2,11 @@
 
 import axios from "axios";
 
-// In production (Vercel), VITE_API_BASE_URL points to the Render backend.
-// In development, requests go through the Vite proxy defined in vite.config.ts.
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+// In production, always point to the Render backend.
+// In development, requests go through the Vite proxy (vite.config.ts).
+const isProd = import.meta.env.PROD;
+const BASE_URL = isProd
+  ? `${import.meta.env.VITE_API_BASE_URL ?? "https://promptshield-cy8k.onrender.com"}/api/v1`
   : "/api/v1";
 
 const apiClient = axios.create({
