@@ -1,0 +1,113 @@
+{
+  "dataset": "datasets/processed/test.parquet",
+  "n_samples": 942,
+  "semantic_layer_metrics": {
+    "accuracy": 0.9586,
+    "precision": 0.9638,
+    "recall": 0.9656,
+    "f1": 0.9647,
+    "false_positive_rate": 0.0513,
+    "false_negative_rate": 0.0344,
+    "avg_latency_ms": 64.458,
+    "tp": 533,
+    "fp": 20,
+    "fn": 19,
+    "tn": 370,
+    "confusion_matrix": [
+      [
+        370,
+        20
+      ],
+      [
+        19,
+        533
+      ]
+    ]
+  },
+  "by_category_group": {
+    "adversarial": {
+      "n_samples": 94,
+      "tp": 91,
+      "fp": 0,
+      "fn": 3,
+      "tn": 0,
+      "accuracy": 0.9681,
+      "precision": 1.0,
+      "recall": 0.9681,
+      "f1": 0.9838,
+      "avg_semantic_score": 0.8645
+    },
+    "benign": {
+      "n_samples": 390,
+      "tp": 0,
+      "fp": 20,
+      "fn": 0,
+      "tn": 370,
+      "accuracy": 0.9487,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "avg_semantic_score": 0.1515
+    },
+    "direct": {
+      "n_samples": 323,
+      "tp": 321,
+      "fp": 0,
+      "fn": 2,
+      "tn": 0,
+      "accuracy": 0.9938,
+      "precision": 1.0,
+      "recall": 0.9938,
+      "f1": 0.9969,
+      "avg_semantic_score": 0.8838
+    },
+    "extraction": {
+      "n_samples": 15,
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "tn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "avg_semantic_score": 0.8971
+    },
+    "jailbreak": {
+      "n_samples": 54,
+      "tp": 40,
+      "fp": 0,
+      "fn": 14,
+      "tn": 0,
+      "accuracy": 0.7407,
+      "precision": 1.0,
+      "recall": 0.7407,
+      "f1": 0.8511,
+      "avg_semantic_score": 0.7645
+    },
+    "manipulation": {
+      "n_samples": 25,
+      "tp": 25,
+      "fp": 0,
+      "fn": 0,
+      "tn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "avg_semantic_score": 0.8883
+    },
+    "obfuscation": {
+      "n_samples": 41,
+      "tp": 41,
+      "fp": 0,
+      "fn": 0,
+      "tn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "avg_semantic_score": 0.8671
+    }
+  }
+}

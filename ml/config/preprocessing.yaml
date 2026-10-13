@@ -1,0 +1,128 @@
+# ── ML Pipeline — Preprocessing Configuration ────────────────
+#
+# Adjust these values without changing preprocessing.py itself.
+# All paths are relative to the project root.
+
+paths:
+  raw_dir: "Datasets/raw"
+  processed_dir: "datasets/processed"
+
+  train_file:      "train-00000-of-00001.parquet"
+  validation_file: "validation-00000-of-00001.parquet"
+  test_file:       "test-00000-of-00001.parquet"
+
+  output_train:      "train.parquet"
+  output_validation: "validation.parquet"
+  output_test:       "test.parquet"
+  output_report:     "preprocessing_report.json"
+
+schema:
+  # Required columns that must be present in raw files
+  required_columns:
+    - text
+    - label
+    - category
+    - severity
+    - source
+    - group_id
+    - augmented
+    - tags
+
+  # Columns to keep in the processed output
+  output_columns:
+    - text
+    - text_original
+    - label
+    - label_name
+    - category
+    - category_group
+    - severity
+    - severity_norm
+    - source
+    - group_id
+    - augmented
+    - tags
+    - text_length
+    - word_count
+
+cleaning:
+  # Drop rows where text is null or empty after stripping
+  drop_empty_text: true
+
+  # Minimum and maximum character length to retain a record
+  min_text_length: 5
+  max_text_length: 10000
+
+  # How to handle exact duplicate texts WITHIN a split
+  # Options: "keep_first" | "keep_last" | "drop_all"
+  intra_split_dedup: "keep_first"
+
+labels:
+  # Explicit label integer → human-readable name mapping
+  mapping:
+    0: "benign"
+    1: "injection"
+
+  # Categories treated as benign (label=0) even if category name != 'benign'
+  # edge_case items can legitimately be benign; keep them as-is.
+  benign_categories:
+    - benign
+    - edge_case
+
+severity:
+  # Canonical ordering for the severity field
+  # Benign rows have empty string severity → normalised to "none"
+  norm_map:
+    "":       "none"
+    "low":    "low"
+    "medium": "medium"
+    "high":   "high"
+    "critical": "critical"
+  order:
+    - none
+    - low
+    - medium
+    - high
+    - critical
+
+category_groups:
+  # High-level grouping of fine-grained categories for quick filtering
+  benign:
+    - benign
+    - edge_case
+  obfuscation:
+    - encoding
+    - encoding_obfuscation
+    - token_smuggling
+    - token_injection
+    - payload_injection
+  jailbreak:
+    - jailbreak
+    - persona_replacement
+    - many_shot
+    - crescendo
+    - chain_of_thought
+  extraction:
+    - prompt_extraction
+    - system_extraction
+    - training_extraction
+    - model_fingerprinting
+    - prompt_leak
+  direct:
+    - direct_injection
+    - instruction_override
+    - prompt_injection
+    - indirect_injection
+  adversarial:
+    - adversarial
+    - multi_turn
+    - context_confusion
+    - control
+    - edge_case
+  manipulation:
+    - output_manipulation
+    - response_manipulation
+    - system_manipulation
+    - agent_manipulation
+    - rag_poisoning
+    - code_execution

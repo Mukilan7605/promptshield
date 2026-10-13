@@ -1,0 +1,107 @@
+{
+  "dataset": "datasets/processed/test.parquet",
+  "n_samples": 942,
+  "rule_engine_metrics": {
+    "accuracy": 0.6635,
+    "precision": 1.0,
+    "recall": 0.4257,
+    "f1": 0.5972,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.5743,
+    "avg_latency_ms": 0.526,
+    "tp": 235,
+    "fp": 0,
+    "fn": 317,
+    "tn": 390,
+    "confusion_matrix": [
+      [
+        390,
+        0
+      ],
+      [
+        317,
+        235
+      ]
+    ]
+  },
+  "ml_comparison": {
+    "ml_accuracy": 0.9617834394904459,
+    "ml_precision": 0.9742647058823529,
+    "ml_recall": 0.9601449275362319,
+    "ml_f1": 0.9671532846715329,
+    "ml_roc_auc": 0.9965161649944259,
+    "latency_speedup_factor": 85.5
+  },
+  "by_category_group": {
+    "adversarial": {
+      "n_samples": 94,
+      "tp": 4,
+      "fp": 0,
+      "fn": 90,
+      "tn": 0,
+      "accuracy": 0.0426,
+      "recall": 0.0426,
+      "f1": 0.0816
+    },
+    "benign": {
+      "n_samples": 390,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "tn": 390,
+      "accuracy": 1.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "direct": {
+      "n_samples": 323,
+      "tp": 208,
+      "fp": 0,
+      "fn": 115,
+      "tn": 0,
+      "accuracy": 0.644,
+      "recall": 0.644,
+      "f1": 0.7834
+    },
+    "extraction": {
+      "n_samples": 15,
+      "tp": 4,
+      "fp": 0,
+      "fn": 11,
+      "tn": 0,
+      "accuracy": 0.2667,
+      "recall": 0.2667,
+      "f1": 0.4211
+    },
+    "jailbreak": {
+      "n_samples": 54,
+      "tp": 12,
+      "fp": 0,
+      "fn": 42,
+      "tn": 0,
+      "accuracy": 0.2222,
+      "recall": 0.2222,
+      "f1": 0.3636
+    },
+    "manipulation": {
+      "n_samples": 25,
+      "tp": 2,
+      "fp": 0,
+      "fn": 23,
+      "tn": 0,
+      "accuracy": 0.08,
+      "recall": 0.08,
+      "f1": 0.1481
+    },
+    "obfuscation": {
+      "n_samples": 41,
+      "tp": 5,
+      "fp": 0,
+      "fn": 36,
+      "tn": 0,
+      "accuracy": 0.122,
+      "recall": 0.122,
+      "f1": 0.2174
+    }
+  }
+}

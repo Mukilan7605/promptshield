@@ -1,0 +1,107 @@
+# ============================================================
+# PromptShield — .gitignore
+# ============================================================
+
+# ── Environment & Secrets ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ── ML / Hugging Face ────────────────────────────────────────
+models/checkpoints/
+models/fine_tuned/
+models/cache/
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+runs/
+wandb/
+mlruns/
+.cache/huggingface/
+
+# ── Data ─────────────────────────────────────────────────────
+# Keep raw datasets tracked but ignore processed artifacts
+datasets/processed/
+datasets/interim/
+
+# ── Database ─────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+
+# ── Testing & Coverage ───────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ── Linting & Formatting ─────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+
+# ── Node / React ─────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+*.tsbuildinfo
+
+# ── OS Artifacts ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ── Docker ───────────────────────────────────────────────────
+.dockerignore

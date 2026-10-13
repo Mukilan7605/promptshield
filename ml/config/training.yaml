@@ -1,0 +1,56 @@
+# ── ML Training Configuration ────────────────────────────────
+#
+# All training hyperparameters are externalised here so ml/train.py
+# never needs to be edited for routine experiments.
+
+model:
+  base_model: "distilbert-base-uncased"
+  num_labels: 2
+  max_seq_length: 256
+  # HuggingFace model cache directory
+  cache_dir: "./models/cache"
+
+paths:
+  processed_dir: "datasets/processed"
+  train_file:      "train.parquet"
+  validation_file: "validation.parquet"
+  test_file:       "test.parquet"
+  # Where the fine-tuned model + tokenizer are saved
+  output_dir:      "models/fine_tuned/promptshield_v1"
+  # Training log JSON (loss per epoch)
+  training_log:    "models/fine_tuned/promptshield_v1/training_log.json"
+  # Final evaluation report
+  eval_report:     "models/fine_tuned/promptshield_v1/eval_report.json"
+
+training:
+  seed: 42
+  num_epochs: 5
+  train_batch_size: 32
+  eval_batch_size: 64
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  # Gradient accumulation steps (increase if memory is limited)
+  gradient_accumulation_steps: 1
+  # Max gradient norm for clipping
+  max_grad_norm: 1.0
+  # Use class weights to handle ~60/40 imbalance
+  use_class_weights: true
+  # Early stopping patience (epochs without val F1 improvement)
+  early_stopping_patience: 3
+  # Metric used for model selection
+  model_selection_metric: "f1_macro"
+  # Save a checkpoint every N steps (0 = only save best)
+  save_steps: 0
+  # Log loss every N steps
+  logging_steps: 50
+  # fp16 mixed-precision (requires CUDA; auto-disabled on CPU)
+  fp16: false
+
+labels:
+  id2label:
+    0: "benign"
+    1: "injection"
+  label2id:
+    "benign": 0
+    "injection": 1

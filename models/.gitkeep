@@ -1,0 +1,3 @@
+# Fine-tuned model files are stored here.
+# Binary model artifacts (.bin, .safetensors, etc.) are gitignored.
+# Subdirectories: cache/ (HuggingFace cache) and fine_tuned/ (trained checkpoints).

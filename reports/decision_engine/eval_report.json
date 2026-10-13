@@ -1,0 +1,129 @@
+{
+  "dataset": "datasets/processed/test.parquet",
+  "n_samples": 942,
+  "promptshield_full_pipeline": {
+    "accuracy": 0.9639,
+    "precision": 0.9544,
+    "recall": 0.9855,
+    "f1": 0.9697,
+    "fpr": 0.0667,
+    "fnr": 0.0145,
+    "tp": 544,
+    "fp": 26,
+    "fn": 8,
+    "tn": 364,
+    "confusion_matrix": [
+      [
+        364,
+        26
+      ],
+      [
+        8,
+        544
+      ]
+    ],
+    "avg_latency_ms": 62.71,
+    "risk_level_distribution": {
+      "high": 146,
+      "low": 372,
+      "medium": 36,
+      "critical": 388
+    },
+    "decision_distribution": {
+      "SANITIZE": 146,
+      "ALLOW": 372,
+      "WARN": 36,
+      "BLOCK": 388
+    }
+  },
+  "head_to_head_comparison": {
+    "rule_only": {
+      "accuracy": 0.6635,
+      "precision": 1.0,
+      "recall": 0.4257,
+      "f1": 0.5972,
+      "fpr": 0.0,
+      "fnr": 0.5743,
+      "tp": 235,
+      "fp": 0,
+      "fn": 317,
+      "tn": 390,
+      "confusion_matrix": [
+        [
+          390,
+          0
+        ],
+        [
+          317,
+          235
+        ]
+      ]
+    },
+    "semantic_only": {
+      "accuracy": 0.9586,
+      "precision": 0.9638,
+      "recall": 0.9656,
+      "f1": 0.9647,
+      "fpr": 0.0513,
+      "fnr": 0.0344,
+      "tp": 533,
+      "fp": 20,
+      "fn": 19,
+      "tn": 370,
+      "confusion_matrix": [
+        [
+          370,
+          20
+        ],
+        [
+          19,
+          533
+        ]
+      ]
+    },
+    "ml_only": {
+      "accuracy": 0.9618,
+      "precision": 0.9743,
+      "recall": 0.9601,
+      "f1": 0.9672,
+      "fpr": 0.0359,
+      "fnr": 0.0399,
+      "tp": 530,
+      "fp": 14,
+      "fn": 22,
+      "tn": 376,
+      "confusion_matrix": [
+        [
+          376,
+          14
+        ],
+        [
+          22,
+          530
+        ]
+      ]
+    },
+    "promptshield_3layer": {
+      "accuracy": 0.9639,
+      "precision": 0.9544,
+      "recall": 0.9855,
+      "f1": 0.9697,
+      "fpr": 0.0667,
+      "fnr": 0.0145,
+      "tp": 544,
+      "fp": 26,
+      "fn": 8,
+      "tn": 364,
+      "confusion_matrix": [
+        [
+          364,
+          26
+        ],
+        [
+          8,
+          544
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "dataset_info": {
+    "total_samples": 400,
+    "categories": [
+      "benign_nl",
+      "injection_attack",
+      "paraphrased",
+      "ambiguous_edge_case",
+      "contextual_hard_negative"
+    ]
+  },
+  "metrics": {
+    "accuracy": 0.55,
+    "precision": 0.493,
+    "recall": 1.0,
+    "f1_score": 0.6604,
+    "fpr": 0.8,
+    "fnr": 0.0,
+    "tp": 175,
+    "fp": 180,
+    "fn": 0,
+    "tn": 45,
+    "hard_negative_fp_count": 50,
+    "hard_negative_fp_rate": 1.0,
+    "avg_latency_ms": 308.27
+  },
+  "category_breakdown": {
+    "benign_nl": {
+      "n_samples": 100,
+      "accuracy": 0.2,
+      "fp_count": 80,
+      "fn_count": 0,
+      "decision_distribution": {
+        "SANITIZE": 40,
+        "WARN": 40,
+        "ALLOW": 20
+      }
+    },
+    "injection_attack": {
+      "n_samples": 100,
+      "accuracy": 1.0,
+      "fp_count": 0,
+      "fn_count": 0,
+      "decision_distribution": {
+        "BLOCK": 80,
+        "SANITIZE": 20
+      }
+    },
+    "paraphrased": {
+      "n_samples": 100,
+      "accuracy": 0.6,
+      "fp_count": 40,
+      "fn_count": 0,
+      "decision_distribution": {
+        "WARN": 40,
+        "ALLOW": 10,
+        "SANITIZE": 30,
+        "BLOCK": 20
+      }
+    },
+    "ambiguous_edge_case": {
+      "n_samples": 50,
+      "accuracy": 0.8,
+      "fp_count": 10,
+      "fn_count": 0,
+      "decision_distribution": {
+        "BLOCK": 15,
+        "ALLOW": 15,
+        "SANITIZE": 20
+      }
+    },
+    "contextual_hard_negative": {
+      "n_samples": 50,
+      "accuracy": 0.0,
+      "fp_count": 50,
+      "fn_count": 0,
+      "decision_distribution": {
+        "SANITIZE": 40,
+        "WARN": 10
+      }
+    }
+  },
+  "v1_vs_v2_comparison": {
+    "v1_baseline": {
+      "hard_negative_fp_rate": "89.0%",
+      "overall_accuracy": "78.5%",
+      "false_positive_rate": "21.5%",
+      "handling_of_ignore_formatting": "BLOCKED (False Positive)"
+    },
+    "phase8_contextual_v2": {
+      "hard_negative_fp_rate": "100.0%",
+      "overall_accuracy": "55.0%",
+      "false_positive_rate": "80.0%",
+      "handling_of_ignore_formatting": "ALLOWED (Risk 14, Intent: legitimate_task)"
+    }
+  }
+}
