@@ -46,13 +46,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     semantic_analyzer = SemanticAnalyzerService.get_instance()
     app.state.semantic_analyzer = semantic_analyzer
 
-    # 3. ML Classifier (loads model from disk)
+    # 3. ML Classifier (loads model from disk, only if enabled)
     from backend.services.ml_classifier import MLClassifierService  # noqa: PLC0415
     ml_classifier = MLClassifierService.get_instance(
         model_path=settings.FINE_TUNED_MODEL_PATH,
         threshold=settings.ML_THRESHOLD,
     )
-    await ml_classifier.load()
+    if settings.ENABLE_ML_BASED:
+        await ml_classifier.load()
+    else:
+        log.info("ML classifier DISABLED via ENABLE_ML_BASED=false — skipping model load.")
     app.state.ml_classifier = ml_classifier
 
     # 4. Detection service (orchestrates all 3 layers)
