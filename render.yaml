@@ -29,11 +29,10 @@ services:
         value: false
       - key: SECRET_KEY
         generateValue: true
-      # Allow all origins — the frontend URL on Render can have a random hash
-      # (e.g. promptshield-frontend-xy3k.onrender.com). Using * avoids CORS
-      # mismatches. Tighten this once the final URL is known.
+      # Explicitly list all known frontend origins.
+      # main.py merges this with _KNOWN_ORIGINS list at startup.
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://frontend-ten-theta-72.vercel.app,https://frontend-inwpphl4z-mukilan7605-6364.vercel.app,http://localhost:3000"
 
   # ── 2. Frontend — React/Vite (Render Static Site) ────────────
   - type: static-site
