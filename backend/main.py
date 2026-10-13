@@ -33,59 +33,86 @@ log = logging.getLogger("promptshield.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application startup / shutdown lifecycle."""
-    setup_logging()
-    log.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    """Application startup / shutdown lifecycle — all steps isolated."""
+    try:
+        setup_logging()
+    except Exception as exc:
+        logging.basicConfig(level=logging.INFO)
+        logging.warning(f"setup_logging failed: {exc} — using basicConfig fallback")
 
-    # ── Startup ───────────────────────────────────────────────────────────
+    log.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION} ...")
 
-    # 1. Rule-based engine (stateless, instantiated once)
-    from backend.services.rule_engine import RuleBasedEngine  # noqa: PLC0415
-    rule_engine = RuleBasedEngine()
-    app.state.rule_engine = rule_engine
-    log.info("Rule-based engine initialised.")
+    # ── 1. Rule-based engine ──────────────────────────────────────────────
+    rule_engine = None
+    try:
+        from backend.services.rule_engine import RuleBasedEngine  # noqa: PLC0415
+        rule_engine = RuleBasedEngine()
+        app.state.rule_engine = rule_engine
+        log.info("Rule-based engine initialised.")
+    except Exception as exc:
+        log.error(f"Rule-based engine FAILED to initialise: {exc}")
 
-    # 2. Semantic Analyzer (v2 Contextual)
-    from backend.services.semantic_analyzer import SemanticAnalyzerService  # noqa: PLC0415
-    semantic_analyzer = SemanticAnalyzerService.get_instance()
-    app.state.semantic_analyzer = semantic_analyzer
+    # ── 2. Semantic Analyzer ──────────────────────────────────────────────
+    semantic_analyzer = None
+    try:
+        from backend.services.semantic_analyzer import SemanticAnalyzerService  # noqa: PLC0415
+        semantic_analyzer = SemanticAnalyzerService.get_instance()
+        app.state.semantic_analyzer = semantic_analyzer
+        log.info("Semantic Analyzer initialised (torch available: %s).", bool(semantic_analyzer._loaded))
+    except Exception as exc:
+        log.error(f"Semantic Analyzer FAILED to initialise: {exc}")
 
-    # 3. ML Classifier (loads model from disk, only if enabled)
-    from backend.services.ml_classifier import MLClassifierService  # noqa: PLC0415
-    ml_classifier = MLClassifierService.get_instance(
-        model_path=settings.FINE_TUNED_MODEL_PATH,
-        threshold=settings.ML_THRESHOLD,
-    )
-    if settings.ENABLE_ML_BASED:
-        await ml_classifier.load()
-    else:
-        log.info("ML classifier DISABLED via ENABLE_ML_BASED=false — skipping model load.")
-    app.state.ml_classifier = ml_classifier
+    # ── 3. ML Classifier ──────────────────────────────────────────────────
+    ml_classifier = None
+    try:
+        from backend.services.ml_classifier import MLClassifierService  # noqa: PLC0415
+        ml_classifier = MLClassifierService.get_instance(
+            model_path=settings.FINE_TUNED_MODEL_PATH,
+            threshold=settings.ML_THRESHOLD,
+        )
+        if settings.ENABLE_ML_BASED:
+            await ml_classifier.load()
+            log.info("ML Classifier loaded.")
+        else:
+            log.info("ML Classifier DISABLED (ENABLE_ML_BASED=false).")
+        app.state.ml_classifier = ml_classifier
+    except Exception as exc:
+        log.error(f"ML Classifier FAILED to initialise: {exc}")
 
-    # 4. Detection service (orchestrates all 3 layers)
-    from backend.services.detection_service import DetectionService  # noqa: PLC0415
-    detection_service = DetectionService(
-        rule_engine=rule_engine,
-        semantic_analyzer=semantic_analyzer,
-        ml_classifier=ml_classifier,
-    )
-    app.state.detection_service = detection_service
+    # ── 4. Detection service ───────────────────────────────────────────────
+    detection_service = None
+    try:
+        from backend.services.rule_engine import RuleBasedEngine  # noqa: PLC0415
+        from backend.services.semantic_analyzer import SemanticAnalyzerService  # noqa: PLC0415
+        from backend.services.ml_classifier import MLClassifierService  # noqa: PLC0415
+        from backend.services.detection_service import DetectionService  # noqa: PLC0415
+        detection_service = DetectionService(
+            rule_engine=rule_engine,
+            semantic_analyzer=semantic_analyzer,
+            ml_classifier=ml_classifier,
+        )
+        app.state.detection_service = detection_service
+        log.info("Detection service initialised.")
+    except Exception as exc:
+        log.error(f"Detection service FAILED to initialise: {exc}")
 
-    log.info("Semantic Analyzer: PromptShield Contextual v2")
-    log.info(f"ML Model: {ml_classifier.model_path}")
-    log.info("Contextual Detection: ENABLED")
+    # ── 5. Analytics store ────────────────────────────────────────────────
+    try:
+        from backend.api.v1.endpoints.analytics import _AnalyticsStore  # noqa: PLC0415
+        app.state.analytics_store = _AnalyticsStore()
+        log.info("Analytics store initialised.")
+    except Exception as exc:
+        log.error(f"Analytics store FAILED: {exc}")
 
-    # 4. Analytics store
-    from backend.api.v1.endpoints.analytics import _AnalyticsStore  # noqa: PLC0415
-    app.state.analytics_store = _AnalyticsStore()
-    log.info("Analytics store initialised.")
+    # ── 6. Secure LLM Gateway ─────────────────────────────────────────────
+    try:
+        from backend.services.llm_gateway import SecureLLMGateway  # noqa: PLC0415
+        app.state.llm_gateway = SecureLLMGateway(detection_service=detection_service)
+        log.info("Secure LLM Gateway initialised.")
+    except Exception as exc:
+        log.error(f"LLM Gateway FAILED: {exc}")
 
-    # 5. Secure LLM Gateway
-    from backend.services.llm_gateway import SecureLLMGateway  # noqa: PLC0415
-    app.state.llm_gateway = SecureLLMGateway(detection_service=detection_service)
-    log.info("Secure LLM Gateway initialised.")
-
-    # 5. Database (optional — only if DB_URL configured)
+    # ── 7. Database ───────────────────────────────────────────────────────
     try:
         from backend.core.database import create_tables  # noqa: PLC0415
         await create_tables()
@@ -93,13 +120,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as exc:
         log.warning(f"Database initialisation skipped: {exc}")
 
-    log.info("PromptShield startup complete ✓")
+    log.info("PromptShield startup complete.")
 
     yield
 
     # ── Shutdown ──────────────────────────────────────────────────────────
     log.info("PromptShield shutting down ...")
-    MLClassifierService.reset_instance()
+    try:
+        from backend.services.ml_classifier import MLClassifierService  # noqa: PLC0415
+        MLClassifierService.reset_instance()
+    except Exception:
+        pass
     log.info("Shutdown complete.")
 
 
