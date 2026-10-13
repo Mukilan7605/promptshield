@@ -160,10 +160,22 @@ def create_app() -> FastAPI:
     # ── Middleware ────────────────────────────────────────────────────────
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-    # IMPORTANT: When allow_origins contains "*", allow_credentials MUST be
-    # False — browsers hard-reject "*" + credentials per the CORS spec.
-    _origins = settings.ALLOWED_ORIGINS
-    _credentials = "*" not in _origins  # False when wildcard is used
+    # CORS: Merge configured origins with all known frontend URLs.
+    # When the list contains "*" we must set allow_credentials=False —
+    # browsers hard-reject "*" + credentials per the CORS spec.
+    _KNOWN_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://frontend-ten-theta-72.vercel.app",
+        "https://frontend-inwpphl4z-mukilan7605-6364.vercel.app",
+    ]
+    _configured = settings.ALLOWED_ORIGINS
+    if "*" in _configured:
+        _origins = ["*"]
+        _credentials = False
+    else:
+        _origins = list(dict.fromkeys(_configured + _KNOWN_ORIGINS))
+        _credentials = True
 
     app.add_middleware(
         CORSMiddleware,
