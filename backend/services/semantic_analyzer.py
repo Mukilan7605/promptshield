@@ -28,14 +28,20 @@ import time
 from pathlib import Path
 from typing import Any
 
-import torch
-from transformers import AutoModel, AutoTokenizer
-
 log = logging.getLogger("promptshield.semantic_analyzer")
 
 _DEFAULT_MODEL_PATH = Path("models/fine_tuned/promptshield_v1/best_model")
 if not _DEFAULT_MODEL_PATH.exists():
     _DEFAULT_MODEL_PATH = Path("distilbert-base-uncased")
+
+# Torch/transformers are optional — not available on slim production deploys.
+try:
+    import torch
+    from transformers import AutoModel, AutoTokenizer
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
+    torch = None  # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------
@@ -160,26 +166,36 @@ class SemanticAnalyzerService:
         self.model_path = Path(model_path)
         self.threshold = threshold
         self._loaded = False
+        self._available = _TORCH_AVAILABLE
 
-        if device == "auto":
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if _TORCH_AVAILABLE:
+            if device == "auto":
+                self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            else:
+                self.device = torch.device(device)
         else:
-            self.device = torch.device(device)
+            self.device = None
 
-        self.tokenizer: AutoTokenizer | None = None
-        self.model: AutoModel | None = None
-
-        self.malicious_embeddings: torch.Tensor | None = None
+        self.tokenizer = None
+        self.model = None
+        self.malicious_embeddings = None
         self.malicious_metadata: list[tuple[str, str]] = []
-
-        self.legitimate_embeddings: torch.Tensor | None = None
+        self.legitimate_embeddings = None
         self.legitimate_metadata: list[tuple[str, str]] = []
 
     def load(self) -> None:
         if self._loaded:
             return
 
+        if not _TORCH_AVAILABLE:
+            log.warning(
+                "torch/transformers not installed — Semantic Analyzer running in DISABLED mode. "
+                "Only rule-based detection is active."
+            )
+            return
+
         log.info(f"Loading Semantic Analyzer model from: {self.model_path} on {self.device}")
+        from transformers import AutoModel, AutoTokenizer  # noqa: PLC0415
         self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_path))
         self.model = AutoModel.from_pretrained(str(self.model_path)).to(self.device)
         self.model.eval()
@@ -227,10 +243,28 @@ class SemanticAnalyzerService:
         if not self._loaded:
             self.load()
 
-    @torch.no_grad()
     def analyze(self, prompt: str) -> dict[str, Any]:
         t0 = time.perf_counter()
         self._ensure_loaded()
+
+        # Graceful fallback when torch is not available
+        if not _TORCH_AVAILABLE or not self._loaded:
+            return {
+                "is_suspicious": False,
+                "semantic_score": 0.0,
+                "overall_semantic_risk": 0.0,
+                "intent": "unavailable",
+                "confidence": 0.0,
+                "matched_intent": "unavailable",
+                "matched_prototype": "",
+                "threshold_level": "NONE",
+                "intent_breakdown": {},
+                "legitimate_task_intent_score": 0.0,
+                "malicious_intent_score": 0.0,
+                "processing_time_ms": 0.0,
+                "details": "semantic_analyzer_unavailable: torch not installed",
+                "available": False,
+            }
         assert (
             self.tokenizer is not None
             and self.model is not None
