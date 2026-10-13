@@ -1,11 +1,12 @@
 services:
+  # ── 1. Backend — FastAPI (Python web service) ─────────────────
   - type: web
     name: promptshield-api
-    runtime: docker          # Use Dockerfile for Node + Python multi-stage build
+    runtime: python
     plan: free
     region: oregon
-    # Render will auto-detect and use the Dockerfile in the repo root.
-    # No buildCommand / startCommand needed — CMD in Dockerfile handles startup.
+    buildCommand: pip install -r requirements-prod.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
     envVars:
       - key: APP_ENV
@@ -28,7 +29,21 @@ services:
         value: false
       - key: SECRET_KEY
         generateValue: true
-      # Allow both the Vercel URL and the Render URL itself
+      # Allow the Render static site to call this API
       - key: ALLOWED_ORIGINS
-        value: https://promptshield.vercel.app,https://promptshield-cy8k.onrender.com
+        value: https://promptshield-frontend.onrender.com,https://promptshield-cy8k.onrender.com
 
+  # ── 2. Frontend — React/Vite (Render Static Site) ────────────
+  - type: static-site
+    name: promptshield-frontend
+    rootDirectory: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    # React Router: every path must fall through to index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://promptshield-cy8k.onrender.com

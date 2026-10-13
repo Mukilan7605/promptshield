@@ -9,16 +9,13 @@ registers routers, middleware, and the full service lifecycle.
 from __future__ import annotations
 
 import logging
-import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 
 from backend.core.config import settings
 from backend.core.logging import setup_logging
@@ -173,49 +170,15 @@ def create_app() -> FastAPI:
     # ── Routers ───────────────────────────────────────────────────────────
     app.include_router(api_router, prefix="/api/v1")
 
-    # ── Serve React frontend from frontend/dist ───────────────────────────
-    # On Render the working dir is always the repo root.
-    _dist = Path.cwd() / "frontend" / "dist"
-    _assets = _dist / "assets"
-    _index = _dist / "index.html"
-
-    if _dist.is_dir() and _index.exists():
-        try:
-            # Mount hashed JS/CSS bundles under /assets
-            if _assets.is_dir():
-                app.mount("/assets", StaticFiles(directory=str(_assets)), name="assets")
-
-            # Mount the entire dist folder for favicon, manifest, etc.
-            app.mount("/static", StaticFiles(directory=str(_dist)), name="static")
-
-            log.info(f"Serving React frontend from: {_dist}")
-
-            # SPA catch-all — every non-API path returns index.html so
-            # React Router can handle client-side navigation.
-            @app.get("/{full_path:path}", include_in_schema=False)
-            async def serve_spa(full_path: str):  # noqa: ARG001
-                index_file = _dist / "index.html"
-                if index_file.exists():
-                    return FileResponse(str(index_file))
-                return {"error": "Frontend not found"}
-
-        except Exception as exc:
-            log.warning(f"Could not mount static files: {exc} — API-only mode")
-
-            @app.get("/", include_in_schema=False)
-            async def root_fallback():
-                return {"name": settings.APP_NAME, "docs": "/api/docs"}
-    else:
-        log.info(f"No frontend dist found at {_dist} — running in API-only mode")
-
-        @app.get("/", include_in_schema=False)
-        async def root():
-            return {
-                "name": settings.APP_NAME,
-                "version": settings.APP_VERSION,
-                "docs": "/api/docs",
-                "health": "/api/v1/health",
-            }
+    # ── Root endpoint ─────────────────────────────────────────────────────
+    @app.get("/", include_in_schema=False)
+    async def root():
+        return JSONResponse({
+            "name": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "docs": "/api/docs",
+            "health": "/api/v1/health",
+        })
 
     return app
 
