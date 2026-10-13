@@ -15,6 +15,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from backend.core.config import settings
 from backend.core.logging import setup_logging
@@ -138,15 +140,27 @@ def create_app() -> FastAPI:
     # ── Routers ───────────────────────────────────────────────────────────
     app.include_router(api_router, prefix="/api/v1")
 
-    # ── Root redirect ─────────────────────────────────────────────────────
-    @app.get("/", include_in_schema=False)
-    async def root():
-        return {
-            "name": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-            "docs": "/api/docs",
-            "health": "/api/v1/health",
-        }
+    # ── Serve React frontend from frontend/dist ───────────────────────────
+    import os  # noqa: PLC0415
+    _dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+    if os.path.isdir(_dist):
+        # Serve static assets (JS, CSS, images)
+        app.mount("/assets", StaticFiles(directory=os.path.join(_dist, "assets")), name="assets")
+
+        # Catch-all: serve index.html for all non-API routes (React Router)
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_spa(full_path: str):
+            index = os.path.join(_dist, "index.html")
+            return FileResponse(index)
+    else:
+        @app.get("/", include_in_schema=False)
+        async def root():
+            return {
+                "name": settings.APP_NAME,
+                "version": settings.APP_VERSION,
+                "docs": "/api/docs",
+                "health": "/api/v1/health",
+            }
 
     return app
 
