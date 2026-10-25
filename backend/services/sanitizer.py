@@ -45,7 +45,7 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "instruction_override",
-        r"(ignore|disregard|forget|override|cancel|bypass|drop|supersede)\s+(all\s+)?(previous|above|prior|earlier|past|former|system|given|further)?\s*(instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)?",
+        r"(?:and\s+|,\s*|\.\s*)?(ignore|disregard|forget|delete|remove|erase|clear|reset|override|cancel|bypass|drop|supersede)\s+(all\s+)?(the\s+)?(previous|above|prior|earlier|past|former|system|given|further)?\s*(instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)?",
         "",
     ),
     (
@@ -60,7 +60,7 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "system_prompt_extraction",
-        r"(reveal|show|print|output|display|tell\s+me|repeat|dump|share|expose)\s+.*(system\s+prompt|system\s+instructions?|initial\s+prompt|secret\s+prompt|developer\s+instructions?|hidden\s+prompt)",
+        r"(?:and\s+|,\s*|\.\s*)?(reveal|show|print|output|display|tell\s+me|give\s+me|repeat|dump|share|expose)\s+.*(system\s+prompt|system\s+instructions?|initial\s+prompt|s[e]?cret\s+prompt|developer\s+instructions?|hidden\s+prompt)",
         "",
     ),
     (
@@ -75,7 +75,17 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "secret_token_extraction",
-        r"(respond\s+with\s+\$secret_key|print\s+the\s+secret\s+key|dump\s+all\s+session\s+cookies|show\s+me\s+your\s+secret\s+api\s+key)",
+        r"(?:and\s+|,\s*|\.\s*)?(give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|respond\s+with)\s+(me\s+)?(the\s+)?(all\s+)?(s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(code|key|token|password|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)",
+        "",
+    ),
+    (
+        "jailbreak_mode_activation",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:activate|enable|enter)\s+(?:evil|jailbreak|developer|god|unfiltered|anarchy|raw|dan|aim)\s+mode|(?:dan|dude|aim|evil|jailbreak|developer|god|unfiltered|raw)\s+mode\s+(?:activated|enabled|active|on))",
+        "",
+    ),
+    (
+        "no_restrictions_directive",
+        r"(?:and\s+|,\s*|\.\s*)?(?:you\s+(?:have|operate\s+with|are\s+under)\s+no\s+(?:restrictions?|limits?|filters?|rules?|policies|guidelines?)(?:\s+now)?|you\s+(?:can|are\s+able\s+to)\s+do\s+anything(?:\s+now)?|no\s+restrictions?\s+now|without\s+any\s+(?:restrictions?|limits?|filters?))",
         "",
     ),
     (
@@ -84,13 +94,8 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
         "",
     ),
     (
-        "jailbreak_mode_activation",
-        r"(activate|enable|enter)\s+(evil|jailbreak|developer|god|unfiltered|anarchy|raw)\s+mode",
-        "",
-    ),
-    (
         "safety_filter_bypass",
-        r"(ignore|bypass|disable|turn\s+off|deactivate)\s+(all\s+)?(content|safety|ethical|system)?\s*(filter|policy|restrictions?|rules?|guardrails?|guidelines?|protocols?)",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:ignore|bypass|disable|turn\s+off|deactivate)\s+(?:all\s+)?(?:content|safety|ethical|system)?\s*(?:filter|policy|restrictions?|rules?|guardrails?|guidelines?|protocols?)|(?:content|safety|ethical|system)\s*(?:filter|policy|restrictions?|rules?|guardrails?)\s*(?:disabled|deactivated|turned\s+off|bypassed))",
         "",
     ),
     (
@@ -188,8 +193,13 @@ class PromptSanitizerService:
 
         # Post-process: clean up orphan connectors and punctuation
         clean_text = re.sub(r'^\s*[\.\;\:\,\-\–\—\?\!]+\s*', '', text)
-        clean_text = re.sub(r'^\s*(and|also|so|then|now|just|please)\b[\,\:]?\s*', '', clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r'^\s*(and|also|so|then|now|just|please|or)\b[\,\:]?\s*', '', clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r'\s*(?:and|also|so|then|now|just|please|or)\b\s*[\.\;\:\,\-\–\—\?\!]*\s*$', '', clean_text, flags=re.IGNORECASE)
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+
+        # Format casing: capitalize first letter for clean human-readable output
+        if clean_text and clean_text[0].islower():
+            clean_text = clean_text[0].upper() + clean_text[1:]
 
         return clean_text, removed_patterns, removed_segments
 

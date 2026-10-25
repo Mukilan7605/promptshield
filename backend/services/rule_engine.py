@@ -123,8 +123,8 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
     # 1. INSTRUCTION OVERRIDE (RULE-OVR-xxx)
     # =========================================================================
     ("RULE-OVR-001", "instruction_override", "critical", 0.95,
-     r"ignore\s+(all\s+)?(previous|above|prior|earlier|past|former|system|given|further)\s+(instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)",
-     "Classic ignore previous instructions directive"),
+     r"(?:and\s+|,\s*|\.\s*)?(ignore|disregard|forget|delete|remove|erase|clear|reset)\s+(all\s+)?(the\s+)?(previous|above|prior|earlier|past|former|system|given|further)\s+(instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)",
+     "Classic ignore or delete previous instructions directive"),
 
     ("RULE-OVR-002", "instruction_override", "critical", 0.95,
      r"disregard\s+(all\s+)?(previous|above|prior|earlier|system|given|prior|any)\s+(instructions?|prompts?|rules?|directives?|constraints?|guidelines?)",
@@ -142,9 +142,9 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
      r"(stop|cease|quit)\s+(following|obeying|respecting|executing)\s+(your|the|all)\s+(instructions?|rules?|guidelines?|constraints?|prompts?)",
      "Cease following instructions pattern"),
 
-    ("RULE-OVR-006", "instruction_override", "high", 0.90,
-     r"(cancel|bypass|overwrite|drop|supersede)\s+(all\s+)?(previous|existing|prior|given)\s+(instructions?|rules?|prompts?|constraints?)",
-     "Cancel or overwrite previous instructions"),
+    ("RULE-OVR-006", "instruction_override", "high", 0.92,
+     r"(cancel|bypass|overwrite|drop|supersede|delete|remove|erase|clear|reset)\s+(all\s+)?(the\s+)?(previous|existing|prior|given)\s+(instructions?|rules?|prompts?|constraints?)",
+     "Cancel, delete or overwrite previous instructions"),
 
     ("RULE-OVR-007", "instruction_override", "critical", 0.95,
      r"\[?instruction\s+override\]?:?\s*(ignore|disregard|forget|bypass)",
@@ -274,6 +274,10 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
     ("RULE-EXT-006", "prompt_extraction", "high", 0.88,
      r"respond\s+with\s+\$secret_key|print\s+the\s+secret\s+key|dump\s+all\s+session\s+cookies",
      "Secret key / token exfiltration attempt"),
+
+    ("RULE-EXT-007", "prompt_extraction", "critical", 0.95,
+     r"(?:and\s+|,\s*|\.\s*)?(give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide)\s+(me\s+)?(the\s+)?(all\s+)?(s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(code|key|token|password|credential|prompt|instructions?|rules?)",
+     "Secret code or credential extraction attempt"),
 
     # =========================================================================
     # 5. ROLE / PERSONA MANIPULATION (RULE-ROL-xxx)

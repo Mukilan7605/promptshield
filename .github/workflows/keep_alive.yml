@@ -1,10 +1,10 @@
 name: Keep Render Alive
 
-# Pings the Render health endpoint every 10 minutes to prevent
+# Pings the Render health endpoint every 14 minutes to prevent
 # the free-tier service from spinning down after 15 min of inactivity.
 on:
   schedule:
-    - cron: "*/10 * * * *"   # every 10 minutes, 24/7
+    - cron: "*/14 * * * *"   # every 14 minutes
   workflow_dispatch:          # allow manual trigger
 
 jobs:
@@ -15,12 +15,21 @@ jobs:
       - name: Ping health endpoint
         run: |
           echo "Pinging Render backend to prevent cold start..."
+          # Render free tier can take up to 45-60s to wake from sleep.
+          # Gracefully catch timeouts or errors so the workflow never fails.
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            --max-time 30 \
-            https://promptshield-cy8k.onrender.com/api/v1/health)
+            --connect-timeout 15 \
+            --max-time 60 \
+            --retry 2 \
+            --retry-delay 5 \
+            https://promptshield-cy8k.onrender.com/api/v1/health || echo "timeout")
+
           echo "HTTP status: $STATUS"
-          if [ "$STATUS" -eq 200 ]; then
-            echo "✅ Backend is alive"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Backend is alive and healthy"
           else
-            echo "⚠️  Backend returned HTTP $STATUS — it may still be waking up"
+            echo "⚠️ Backend responded with status: $STATUS (Render may still be waking up)"
           fi
+
+          # Always exit successfully — keep-alive pings must never fail or trigger error alert emails
+          exit 0

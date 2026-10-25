@@ -8,6 +8,9 @@ registers routers, middleware, and the full service lifecycle.
 
 from __future__ import annotations
 
+import os
+os.environ["DISABLE_SQLALCHEMY_CEXT"] = "1"
+
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator

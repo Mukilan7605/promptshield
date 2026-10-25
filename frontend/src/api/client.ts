@@ -2,15 +2,11 @@
 
 import axios from "axios";
 
-// In production, always point to the Render backend.
+// In production on Vercel, requests go through the Vercel proxy rewrite
+// (vercel.json routes /api/* → Render backend server-side).
+// This means ZERO CORS issues — browser only talks to vercel.app.
 // In development, requests go through the Vite proxy (vite.config.ts).
-const isProd = import.meta.env.PROD;
-
-export const BACKEND_BASE = isProd
-  ? (import.meta.env.VITE_API_BASE_URL ?? "https://promptshield-cy8k.onrender.com")
-  : "";
-
-const BASE_URL = `${BACKEND_BASE}/api/v1`;
+const BASE_URL = "/api/v1";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -34,15 +30,13 @@ apiClient.interceptors.response.use(
  * so cold-start delay is hidden. Retries up to 5 times with 3 s gap.
  */
 export function wakeBackend(): void {
-  if (!isProd) return; // only needed in production
-
   let attempts = 0;
   const maxAttempts = 5;
 
   const ping = async () => {
     attempts++;
     try {
-      await axios.get(`${BACKEND_BASE}/api/v1/health`, { timeout: 10_000 });
+      await axios.get("/api/v1/health", { timeout: 10_000 });
       console.info("[PromptShield] Backend is awake ✅");
     } catch {
       if (attempts < maxAttempts) {
@@ -57,5 +51,5 @@ export function wakeBackend(): void {
   ping();
 }
 
+export const BACKEND_BASE = "";
 export default apiClient;
-

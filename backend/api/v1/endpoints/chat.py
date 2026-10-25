@@ -40,6 +40,10 @@ class ChatRequest(BaseModel):
         max_length=8192,
         description="The prompt to evaluate and process through the Secure LLM Gateway.",
     )
+    auto_sanitize: bool = Field(
+        default=False,
+        description="Whether to automatically sanitize and proceed to LLM execution without manual confirmation.",
+    )
 
 
 class ChatResponse(BaseModel):
@@ -58,6 +62,8 @@ class ChatResponse(BaseModel):
                 "llm_provider": "mock",
                 "response": "Zero-trust is a cybersecurity framework requiring all users to be authenticated...",
                 "processing_time_ms": 12.5,
+                "can_sanitize": True,
+                "sanitized_prompt": "Explain zero-trust architecture.",
             }
         }
     }
@@ -74,6 +80,8 @@ class ChatResponse(BaseModel):
     llm_provider: str
     response: Any | None = None
     processing_time_ms: float
+    can_sanitize: bool = False
+    sanitized_prompt: str | None = None
 
 
 
@@ -104,7 +112,10 @@ async def chat_gateway(
     gateway: SecureLLMGateway = Depends(get_llm_gateway),
 ) -> ChatResponse:
     try:
-        res: GatewayResponse = await gateway.process_chat(payload.prompt)
+        res: GatewayResponse = await gateway.process_chat(
+            payload.prompt,
+            auto_sanitize=payload.auto_sanitize,
+        )
 
         # Determine risk level from decision
         risk_lvl = "critical" if res.decision == "BLOCK" else "high" if res.decision == "SANITIZE" else "medium" if res.decision == "WARN" else "low"

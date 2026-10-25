@@ -66,10 +66,18 @@ class MockLLMProvider(BaseLLMProvider):
         # Truncate prompt snippet for mock response
         snippet = prompt[:80].replace("\n", " ") + ("..." if len(prompt) > 80 else "")
 
-        mock_text = (
-            f"This is a mock LLM response to your input: \"{snippet}\". "
-            f"PromptShield verified this prompt is safe for execution."
-        )
+        p_lower = prompt.lower().strip()
+        if "what is an apple" in p_lower:
+            mock_text = (
+                "An apple is a sweet, edible fruit produced by an apple tree (Malus domestica). "
+                "Apple trees are cultivated worldwide and are known for their crisp texture, nutritional value "
+                "(rich in dietary fiber and vitamin C), and culinary versatility."
+            )
+        else:
+            mock_text = (
+                f"This is a mock LLM response to your input: \"{snippet}\". "
+                f"PromptShield verified this prompt is safe for execution."
+            )
 
         return {
             "response": mock_text,

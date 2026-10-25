@@ -57,6 +57,8 @@ export interface ChatGatewayResponse {
   llm_provider: string;
   response?: string | Record<string, any> | null;
   processing_time_ms: number;
+  can_sanitize?: boolean;
+  sanitized_prompt?: string | null;
 }
 
 

@@ -49,6 +49,8 @@ class GatewayResponse:
     llm_provider: str = "mock"
     response: str | None = None
     processing_time_ms: float = 0.0
+    can_sanitize: bool = False
+    sanitized_prompt: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -64,6 +66,8 @@ class GatewayResponse:
             "llm_provider": self.llm_provider,
             "response": self.response,
             "processing_time_ms": self.processing_time_ms,
+            "can_sanitize": self.can_sanitize,
+            "sanitized_prompt": self.sanitized_prompt,
         }
 
 
@@ -111,7 +115,12 @@ class SecureLLMGateway:
         }
         sec_log.info(f"[SECURITY AUDIT] {audit_entry}")
 
-    async def process_chat(self, prompt: str, request_id: str | None = None) -> GatewayResponse:
+    async def process_chat(
+        self,
+        prompt: str,
+        request_id: str | None = None,
+        auto_sanitize: bool = False,
+    ) -> GatewayResponse:
         """
         Process a user prompt through the complete security gateway pipeline.
         """
@@ -131,26 +140,48 @@ class SecureLLMGateway:
         blocked_parts: list[str] = []
         final_decision = initial_decision
         final_score = initial_score
+        can_sanitize = False
+        sanitized_prompt_candidate: str | None = None
 
         # Step 2: Route according to decision
-        if initial_decision == "ALLOW" or initial_decision == "WARN":
+        if initial_decision in ("ALLOW", "WARN"):
             # Direct execution path
             pass
 
-        elif initial_decision == "SANITIZE":
-            # Mandatory Sanitization & Security Re-analysis
+        elif initial_decision in ("SANITIZE", "BLOCK"):
+            # Run sanitization verification to see if the malicious parts can be neutralized
             san_result = await self.sanitizer_service.sanitize_and_verify(orig_prompt, initial_detection=det_result)
-            was_sanitized = san_result.was_modified
-            final_prompt = san_result.sanitized_prompt
-            sanitization_reason = san_result.sanitization_reason
-            blocked_parts = san_result.removed_segments
-            final_score = san_result.risk_after
-            final_decision = san_result.final_decision  # ALLOW / WARN / BLOCK
+            is_viable = (
+                san_result.was_modified
+                and bool(san_result.sanitized_prompt)
+                and not san_result.sanitized_prompt.startswith("[CONTENT_REMOVED")
+                and san_result.risk_after <= 49
+            )
 
-        elif initial_decision == "BLOCK":
-            # Direct Block path
-            final_decision = "BLOCK"
-            blocked_parts = [orig_prompt]
+            if is_viable:
+                can_sanitize = True
+                sanitized_prompt_candidate = san_result.sanitized_prompt
+
+            if auto_sanitize and is_viable:
+                # AUTO-SANITIZE & PROCEED: User or system enabled auto-sanitization
+                was_sanitized = True
+                final_prompt = san_result.sanitized_prompt
+                sanitization_reason = "Auto-sanitized: Removed malicious injection tokens. Safe prompt forwarded to LLM."
+                blocked_parts = san_result.removed_segments
+                final_score = san_result.risk_after
+                final_decision = san_result.final_decision  # ALLOW or WARN
+            elif initial_decision == "SANITIZE":
+                was_sanitized = san_result.was_modified
+                final_prompt = san_result.sanitized_prompt
+                sanitization_reason = san_result.sanitization_reason
+                blocked_parts = san_result.removed_segments
+                final_score = san_result.risk_after
+                final_decision = san_result.final_decision
+            else:
+                # BLOCK without auto_sanitize
+                final_decision = "BLOCK"
+                sanitization_reason = "Prompt contains injection instructions and was blocked."
+                blocked_parts = san_result.removed_segments if (is_viable and san_result.removed_segments) else [orig_prompt]
 
         # Step 3: Enforcement — Should the LLM provider be called?
         llm_called = False
@@ -196,5 +227,7 @@ class SecureLLMGateway:
             llm_provider=provider_name,
             response=llm_response_text,
             processing_time_ms=elapsed_ms,
+            can_sanitize=can_sanitize,
+            sanitized_prompt=sanitized_prompt_candidate,
         )
 

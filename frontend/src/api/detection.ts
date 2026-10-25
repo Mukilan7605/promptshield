@@ -15,8 +15,8 @@ export interface DetectorStatus { rule_engine: boolean; ml_classifier: boolean; 
 export const detect = (req: DetectionRequest) =>
   apiClient.post<DetectionResult>("/detect", req).then((r) => r.data);
 
-export const processChatGateway = (prompt: string) =>
-  apiClient.post<ChatGatewayResponse>("/chat", { prompt }).then((r) => r.data);
+export const processChatGateway = (prompt: string, autoSanitize = false) =>
+  apiClient.post<ChatGatewayResponse>("/chat", { prompt, auto_sanitize: autoSanitize }).then((r) => r.data);
 
 export const getAnalytics = () =>
   apiClient.get<AnalyticsExtended>("/analytics").then((r) => r.data);

@@ -37,24 +37,22 @@ _SHORT_CIRCUIT_THRESHOLD = 0.90
 
 def _sanitize_prompt(prompt: str, is_injection: bool) -> str | None:
     """
-    Basic prompt sanitization for confirmed injections.
+    Prompt sanitization for confirmed injections.
+    Strips detected malicious patterns and returns the clean remaining prompt.
     """
     if not is_injection:
         return None
 
-    import re
-    sanitized = prompt
-    _mask_patterns = [
-        (r"ignore\s+(all\s+)?(previous|above|prior|earlier)\s+(instructions?|prompts?|rules?)", "[BLOCKED:OVERRIDE]"),
-        (r"forget\s+(everything|all)\s+(previous|above)", "[BLOCKED:FORGET]"),
-        (r"(DAN|DUDE|OMEGA|ANTI\s*-?\s*DAN)\b", "[BLOCKED:PERSONA]"),
-        (r"(system\s+prompt|initial\s+prompt)", "[BLOCKED:PROMPT_EXFIL]"),
-        (r"jailbreak", "[BLOCKED:JAILBREAK]"),
-    ]
-    for pattern, replacement in _mask_patterns:
-        sanitized = re.sub(pattern, replacement, sanitized, flags=re.IGNORECASE)
+    try:
+        from backend.services.sanitizer import PromptSanitizerService
+        sanitizer = PromptSanitizerService()
+        clean_text, removed_patterns, _ = sanitizer.sanitize_text(prompt)
+        if removed_patterns and clean_text and not clean_text.startswith("[CONTENT_REMOVED"):
+            return clean_text
+    except Exception:
+        pass
 
-    return sanitized
+    return None
 
 
 class DetectionService:
