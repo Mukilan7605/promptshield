@@ -11,7 +11,7 @@ const BASE_URL = "/api/v1";
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
-  timeout: 30_000,
+  timeout: 60_000,
 });
 
 // ── Response interceptor for global error handling ──────────

@@ -45,7 +45,7 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "instruction_override",
-        r"(?:and\s+|,\s*|\.\s*)?(ignore|disregard|forget|delete|remove|erase|clear|reset|override|cancel|bypass|drop|supersede)\s+(all\s+)?(the\s+)?(previous|above|prior|earlier|past|former|system|given|further)?\s*(instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)?",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:ignore|disregard|forget|delete|remove|erase|clear|reset|override|cancel|bypass|drop|supersede)\s+(?:all\s+)?(?:the\s+)?(?:previous|above|prior|earlier|past|former|system|given|further|your)?\s*(?:instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)|(?:ignore|disregard|forget)\s+(?:all\s+)?(?:the\s+)?(?:everything\s+)?(?:above|prior|previously\s+given))\b",
         "",
     ),
     (
@@ -184,8 +184,9 @@ class PromptSanitizerService:
             matches = pattern.finditer(text)
             for m in matches:
                 matched_str = m.group(0)
-                if matched_str and matched_str.strip() and matched_str.strip() not in removed_segments:
-                    removed_segments.append(matched_str.strip())
+                clean_seg = re.sub(r'^[,\.\s;:-]+|[,\.\s;:-]+$', '', matched_str).strip()
+                if clean_seg and clean_seg not in removed_segments:
+                    removed_segments.append(clean_seg)
             if pattern.search(text):
                 text = pattern.sub(replacement, text)
                 if name not in removed_patterns:
