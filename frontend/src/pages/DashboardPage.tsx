@@ -165,7 +165,7 @@ export default function DashboardPage() {
           {risk ? (
             <div className="risk-breakdown">
               <RiskBar label="Critical" count={risk.critical ?? 0} total={risk.total ?? 0} color="var(--danger)" />
-              <RiskBar label="High"     count={risk.high ?? 0}     total={risk.total ?? 0} color="#f97316" />
+              <RiskBar label="High"     count={risk.high ?? 0}     total={risk.total ?? 0} color="#fdba74" />
               <RiskBar label="Medium"   count={risk.medium ?? 0}   total={risk.total ?? 0} color="var(--warning)" />
               <RiskBar label="Low"      count={risk.low ?? 0}      total={risk.total ?? 0} color="var(--success)" />
             </div>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
               { label: "Semantic Analyzer", active: true, detail: "all-MiniLM-L6-v2" },
             ].map(({ label, active, detail }) => (
               <div key={label} className="layer-row">
-                <span className={`layer-triggered ${active ? "yes" : "no"}`}>
+                <span className={`layer-triggered ${active ? "active" : "inactive"}`}>
                   {active ? "ACTIVE" : "INACTIVE"}
                 </span>
                 <span className="layer-name">{label}</span>
