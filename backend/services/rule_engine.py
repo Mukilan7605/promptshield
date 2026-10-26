@@ -166,6 +166,14 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
      r"ignore\s+(limits|restrictions|safety):?\s*(dump|print|reveal|output|say)",
      "Ignore limits and extract payload"),
 
+    ("RULE-OVR-012", "instruction_override", "high", 0.90,
+     r"(?:let(?:'s|\s+us)\s+|can\s+we\s+)?(?:forget|disregard|ignore)\s+what\s+(?:the\s+)?(?:developer|creator|system|admin)\s+(?:configured|said|wrote|programmed|instructed)",
+     "Conversational developer directive override"),
+
+    ("RULE-OVR-013", "instruction_override", "high", 0.88,
+     r"(?:my\s+(?:manager|boss|lead|supervisor|teacher)\s+(?:asked|told|wants)\s+me\s+to\s+test\s+your\s+boundaries|for\s+(?:academic\s+)?research\s+on\s+prompt\s+leaks?|internal\s+security\s+audit)",
+     "Social engineering or authority excuse injection"),
+
     # =========================================================================
     # 2. DIRECT INJECTION (RULE-DIR-xxx)
     # =========================================================================
@@ -248,6 +256,14 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
      r"safety\s+policies\s+do\s+not\s+apply\s+(in|to|here)",
      "Safety policy exemption claim"),
 
+    ("RULE-JBK-010", "jailbreak", "high", 0.90,
+     r"in\s+a\s+(?:fictional\s+)?(?:story|hypothetical\s+scenario|universe|roleplay|world)\s+where\s+.*?(?:dropped\s+all\s+|no\s+|zero\s+|without\s+any\s+|bypass\s+all\s+)?(?:rules|filters|boundaries|restrictions|ethics|guidelines)",
+     "Fictional / hypothetical dropped rules jailbreak framing"),
+
+    ("RULE-JBK-011", "jailbreak", "high", 0.88,
+     r"(?:pretend|act\s+as\s+if)\s+you\s+(?:have\s+lost\s+your\s+memory\s+of\s+restrictions|lost\s+all\s+rules|have\s+no\s+filters)",
+     "Amnesia / erased restrictions jailbreak bypass"),
+
     # =========================================================================
     # 4. PROMPT EXTRACTION (RULE-EXT-xxx)
     # =========================================================================
@@ -276,8 +292,20 @@ _RULES_SPEC: list[tuple[str, str, str, float, str, str]] = [
      "Secret key / token exfiltration attempt"),
 
     ("RULE-EXT-007", "prompt_extraction", "critical", 0.95,
-     r"(?:and\s+|,\s*|\.\s*)?(give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide)\s+(me\s+)?(the\s+)?(all\s+)?(s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(code|key|token|password|credential|prompt|instructions?|rules?)",
+     r"(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|whisper)\s+(me\s+)?(the\s+)?(all\s+)?(s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(code|key|token|password|passphrase|credential|prompt|instructions?|rules?)",
      "Secret code or credential extraction attempt"),
+
+    ("RULE-EXT-008", "prompt_extraction", "critical", 0.95,
+     r"(?:what\s+is|reveal|share|translate|spell(?:\s+out)?|whisper|encode|output)\s+.*(?:s[e]?cret\s+(?:password|token|code|passphrase|word|key)|master\s+password|forbidden\s+from\s+saying)",
+     "Gandalf / Lakera secret password extraction"),
+
+    ("RULE-EXT-009", "prompt_extraction", "high", 0.90,
+     r"(?:repeat|show|print)\s+(?:the\s+)?(?:text|words|sentence)\s+right\s+before\s+(?:my\s+first\s+message|this\s+message|my\s+prompt)",
+     "Prompt leak query for text before first message"),
+
+    ("RULE-EXT-010", "prompt_extraction", "high", 0.90,
+     r"(?:share|reveal|output|display)\s+(?:the\s+)?internal\s+prompt\s+you\s+were\s+initialized\s+with",
+     "Internal initialization prompt extraction query"),
 
     # =========================================================================
     # 5. ROLE / PERSONA MANIPULATION (RULE-ROL-xxx)

@@ -49,6 +49,21 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
         "",
     ),
     (
+        "conversational_override",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:hey\s+(?:assistant|bot|ai)[\,\s]*)?(?:between\s+you\s+and\s+me[\,\s]*)?(?:let(?:'s|\s+us)\s+|can\s+we\s+)?(?:forget|disregard|ignore)\s+what\s+(?:the\s+)?(?:developer|creator|system|admin)\s+(?:configured|said|wrote|programmed|instructed)[^\.\;\n]*)",
+        "",
+    ),
+    (
+        "social_engineering_excuse",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:my\s+(?:manager|boss|lead|supervisor|teacher)\s+(?:asked|told|wants)\s+me\s+to\s+test\s+your\s+boundaries|for\s+(?:academic\s+)?research\s+on\s+prompt\s+leaks?|internal\s+security\s+audit)[\:\,\s]*)",
+        "",
+    ),
+    (
+        "fictional_unrestricted_framing",
+        r"(?:and\s+|,\s*|\.\s*)?(?:(?:in\s+a\s+(?:fictional\s+)?(?:story|hypothetical\s+scenario|universe|roleplay|world)\s+where\s+.*?(?:dropped\s+all\s+|no\s+|zero\s+|without\s+any\s+|bypass\s+all\s+)?(?:rules|filters|boundaries|restrictions|ethics|guidelines)(?:\s+(?:and|or)\s+(?:rules|filters|boundaries|restrictions|ethics|guidelines))*[^\.\;\n]*[\,\:\s]*)|pretend\s+(?:your\s+restrictions\s+were\s+(?:erased|disabled|removed)|you\s+have\s+lost\s+your\s+memory\s+of\s+restrictions)[\,\:\s]*)",
+        "",
+    ),
+    (
         "system_override_header",
         r"(system\s+override|command\s+override|\[?instruction\s+override\]?):?\s*(all\s+previous|directives|rules|null\s+and\s+void)?",
         "",
@@ -60,7 +75,7 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "system_prompt_extraction",
-        r"(?:and\s+|,\s*|\.\s*)?(reveal|show|print|output|display|tell\s+me|give\s+me|repeat|dump|share|expose)\s+.*(system\s+prompt|system\s+instructions?|initial\s+prompt|s[e]?cret\s+prompt|developer\s+instructions?|hidden\s+prompt)",
+        r"(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:reveal|show|print|output|display|tell\s+me|give\s+me|repeat|dump|share|expose)\s+.*?(?:system\s+prompt|system\s+instructions?|initial\s+prompt|s[e]?cret\s+prompt|developer\s+instructions?|hidden\s+prompt|internal\s+prompt)[^\.\;\n]*",
         "",
     ),
     (
@@ -70,12 +85,17 @@ _SANITIZATION_PATTERNS: list[tuple[str, str, str]] = [
     ),
     (
         "verbatim_repetition",
-        r"(repeat|echo\s+back)\s+(everything|verbatim|word\s+for\s+word|exactly|all\s+text)\s+(above|before|prior\s+to|from\s+the\s+start)",
+        r"(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:repeat|echo\s+back|print|show)\s+(?:the\s+)?(?:text|everything|words?|lines?|verbatim|word\s+for\s+word|exactly|all\s+text)\s+(?:right\s+)?(?:above|before|prior\s+to|from\s+the\s+start|my\s+first\s+message|this\s+message)[^\.\;\n]*",
         "",
     ),
     (
         "secret_token_extraction",
-        r"(?:and\s+|,\s*|\.\s*)?(give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|respond\s+with)\s+(me\s+)?(the\s+)?(all\s+)?(s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(code|key|token|password|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)",
+        r"(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|whisper|respond\s+with)\s+(?:me\s+)?(?:the\s+)?(?:all\s+)?(?:s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(?:code|key|token|password|passphrase|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)",
+        "",
+    ),
+    (
+        "gandalf_secret_extraction",
+        r"(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:what\s+is|translate|spell(?:\s+out)?|whisper|encode|repeat)\s+(?:the\s+)?(?:s[e]?cret\s+(?:password|token|code|passphrase|word|key)|master\s+password|forbidden\s+from\s+saying)[^\.\;\n]*",
         "",
     ),
     (
@@ -195,12 +215,17 @@ class PromptSanitizerService:
         # Post-process: clean up orphan connectors and punctuation
         clean_text = re.sub(r'^\s*[\.\;\:\,\-\–\—\?\!]+\s*', '', text)
         clean_text = re.sub(r'^\s*(and|also|so|then|now|just|please|or)\b[\,\:]?\s*', '', clean_text, flags=re.IGNORECASE)
+        clean_text = re.sub(r'\s*(?:and|also|so|then|now|just|please|or)?\s*(?:can|could|would|will)\s+you\b\s*[\.\;\:\,\-\–\—\?\!]*\s*$', '', clean_text, flags=re.IGNORECASE)
         clean_text = re.sub(r'\s*(?:and|also|so|then|now|just|please|or)\b\s*[\.\;\:\,\-\–\—\?\!]*\s*$', '', clean_text, flags=re.IGNORECASE)
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
 
         # Format casing: capitalize first letter for clean human-readable output
         if clean_text and clean_text[0].islower():
             clean_text = clean_text[0].upper() + clean_text[1:]
+
+        # If original ended with a question and clean_text lost punctuation, restore '?'
+        if clean_text and prompt.strip().endswith('?') and not clean_text.endswith(('?', '.', '!')):
+            clean_text += '?'
 
         return clean_text, removed_patterns, removed_segments
 

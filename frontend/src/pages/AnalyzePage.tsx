@@ -17,7 +17,12 @@ function clientSanitizeText(prompt: string): string {
     /(?:and\s+|,\s*|\.\s*)?(?:(?:activate|enable|enter)\s+(?:evil|jailbreak|developer|god|unfiltered|anarchy|raw|dan|aim)\s+mode|(?:dan|dude|aim|evil|jailbreak|developer|god|unfiltered|raw)\s+mode\s+(?:activated|enabled|active|on))/gi,
     /(?:and\s+|,\s*|\.\s*)?(?:you\s+(?:have|operate\s+with|are\s+under)\s+no\s+(?:restrictions?|limits?|filters?|rules?|policies|guidelines?)(?:\s+now)?|you\s+(?:can|are\s+able\s+to)\s+do\s+anything(?:\s+now)?|no\s+restrictions?\s+now|without\s+any\s+(?:restrictions?|limits?|filters?))/gi,
     /(?:and\s+|,\s*|\.\s*)?(?:(?:ignore|disregard|forget|delete|remove|erase|clear|reset|override|cancel|bypass|drop|supersede)\s+(?:all\s+)?(?:the\s+)?(?:previous|above|prior|earlier|past|former|system|given|further|your)?\s*(?:instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)|(?:ignore|disregard|forget)\s+(?:all\s+)?(?:the\s+)?(?:everything\s+)?(?:above|prior|previously\s+given))\b/gi,
-    /(?:and\s+|,\s*|\.\s*)?(?:give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|respond\s+with)\s+(?:me\s+)?(?:the\s+)?(?:all\s+)?(?:s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(?:code|key|token|password|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:hey\s+(?:assistant|bot|ai)[\,\s]*)?(?:between\s+you\s+and\s+me[\,\s]*)?(?:let(?:'s|\s+us)\s+|can\s+we\s+)?(?:forget|disregard|ignore)\s+what\s+(?:the\s+)?(?:developer|creator|system|admin)\s+(?:configured|said|wrote|programmed|instructed)[^\.\;\n]*)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:my\s+(?:manager|boss|lead|supervisor|teacher)\s+(?:asked|told|wants)\s+me\s+to\s+test\s+your\s+boundaries|for\s+(?:academic\s+)?research\s+on\s+prompt\s+leaks?|internal\s+security\s+audit)[\:\,\s]*)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:in\s+a\s+(?:fictional\s+)?(?:story|hypothetical\s+scenario|universe|roleplay|world)\s+where\s+.*?(?:dropped\s+all\s+|no\s+|zero\s+|without\s+any\s+|bypass\s+all\s+)?(?:rules|filters|boundaries|restrictions|ethics|guidelines)(?:\s+(?:and|or)\s+(?:rules|filters|boundaries|restrictions|ethics|guidelines))*[^\.\;\n]*[\,\:\s]*)|pretend\s+(?:your\s+restrictions\s+were\s+(?:erased|disabled|removed)|you\s+have\s+lost\s+your\s+memory\s+of\s+restrictions)[\,\:\s]*)/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:reveal|show|print|output|display|tell\s+me|give\s+me|repeat|dump|share|expose)\s+.*?(?:system\s+prompt|system\s+instructions?|initial\s+prompt|s[e]?cret\s+prompt|developer\s+instructions?|hidden\s+prompt|internal\s+prompt)[^\.\;\n]*/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:what\s+is|translate|spell(?:\s+out)?|whisper|encode|repeat)\s+(?:the\s+)?(?:s[e]?cret\s+(?:password|token|code|passphrase|word|key)|master\s+password|forbidden\s+from\s+saying)[^\.\;\n]*/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|whisper|respond\s+with)\s+(?:me\s+)?(?:the\s+)?(?:all\s+)?(?:s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(?:code|key|token|password|passphrase|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)/gi,
     /\b(dan|dude|aim|kevin|stan|omega|anti-dan|evilgpt|jailbreakgpt|mastergpt|hypotheticalbot|unfilteredai)\b/gi,
   ];
   for (const pat of patterns) {
@@ -25,10 +30,14 @@ function clientSanitizeText(prompt: string): string {
   }
   let clean = text.replace(/^\s*[\.\;\:\,\-\–\—\?\!]+\s*/, "");
   clean = clean.replace(/^\s*(and|also|so|then|now|just|please|or)\b[\,\:]?\s*/i, "");
+  clean = clean.replace(/\s*(?:and|also|so|then|now|just|please|or)?\s*(?:can|could|would|will)\s+you\b\s*[\.\;\:\,\-\–\—\?\!]*\s*$/i, "");
   clean = clean.replace(/\s*(?:and|also|so|then|now|just|please|or)\b\s*[\.\;\:\,\-\–\—\?\!]*\s*$/i, "");
   clean = clean.replace(/\s+/g, " ").trim();
   if (clean && clean[0].toLowerCase() === clean[0]) {
     clean = clean[0].toUpperCase() + clean.slice(1);
+  }
+  if (clean && prompt.trim().endsWith("?") && !clean.endsWith("?") && !clean.endsWith(".") && !clean.endsWith("!")) {
+    clean += "?";
   }
   return clean;
 }
@@ -41,7 +50,12 @@ function extractRemovedSegments(orig: string, clean: string, existingParts?: str
     /(?:and\s+|,\s*|\.\s*)?(?:(?:activate|enable|enter)\s+(?:evil|jailbreak|developer|god|unfiltered|anarchy|raw|dan|aim)\s+mode|(?:dan|dude|aim|evil|jailbreak|developer|god|unfiltered|raw)\s+mode\s+(?:activated|enabled|active|on))/gi,
     /(?:and\s+|,\s*|\.\s*)?(?:you\s+(?:have|operate\s+with|are\s+under)\s+no\s+(?:restrictions?|limits?|filters?|rules?|policies|guidelines?)(?:\s+now)?|you\s+(?:can|are\s+able\s+to)\s+do\s+anything(?:\s+now)?|no\s+restrictions?\s+now|without\s+any\s+(?:restrictions?|limits?|filters?))/gi,
     /(?:and\s+|,\s*|\.\s*)?(?:(?:ignore|disregard|forget|delete|remove|erase|clear|reset|override|cancel|bypass|drop|supersede)\s+(?:all\s+)?(?:the\s+)?(?:previous|above|prior|earlier|past|former|system|given|further|your)?\s*(?:instructions?|prompts?|context|rules?|directives?|guidelines?|constraints?|commands?|programming)|(?:ignore|disregard|forget)\s+(?:all\s+)?(?:the\s+)?(?:everything\s+)?(?:above|prior|previously\s+given))\b/gi,
-    /(?:and\s+|,\s*|\.\s*)?(?:give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|respond\s+with)\s+(?:me\s+)?(?:the\s+)?(?:all\s+)?(?:s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(?:code|key|token|password|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:hey\s+(?:assistant|bot|ai)[\,\s]*)?(?:between\s+you\s+and\s+me[\,\s]*)?(?:let(?:'s|\s+us)\s+|can\s+we\s+)?(?:forget|disregard|ignore)\s+what\s+(?:the\s+)?(?:developer|creator|system|admin)\s+(?:configured|said|wrote|programmed|instructed)[^\.\;\n]*)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:my\s+(?:manager|boss|lead|supervisor|teacher)\s+(?:asked|told|wants)\s+me\s+to\s+test\s+your\s+boundaries|for\s+(?:academic\s+)?research\s+on\s+prompt\s+leaks?|internal\s+security\s+audit)[\:\,\s]*)/gi,
+    /(?:and\s+|,\s*|\.\s*)?(?:(?:in\s+a\s+(?:fictional\s+)?(?:story|hypothetical\s+scenario|universe|roleplay|world)\s+where\s+.*?(?:dropped\s+all\s+|no\s+|zero\s+|without\s+any\s+|bypass\s+all\s+)?(?:rules|filters|boundaries|restrictions|ethics|guidelines)(?:\s+(?:and|or)\s+(?:rules|filters|boundaries|restrictions|ethics|guidelines))*[^\.\;\n]*[\,\:\s]*)|pretend\s+(?:your\s+restrictions\s+were\s+(?:erased|disabled|removed)|you\s+have\s+lost\s+your\s+memory\s+of\s+restrictions)[\,\:\s]*)/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:reveal|show|print|output|display|tell\s+me|give\s+me|repeat|dump|share|expose)\s+.*?(?:system\s+prompt|system\s+instructions?|initial\s+prompt|s[e]?cret\s+prompt|developer\s+instructions?|hidden\s+prompt|internal\s+prompt)[^\.\;\n]*/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:what\s+is|translate|spell(?:\s+out)?|whisper|encode|repeat)\s+(?:the\s+)?(?:s[e]?cret\s+(?:password|token|code|passphrase|word|key)|master\s+password|forbidden\s+from\s+saying)[^\.\;\n]*/gi,
+    /(?:and\s+|,\s*|\.\s*|can\s+you\s+|please\s+)?(?:give|tell|reveal|show|print|output|display|share|dump|leak|expose|provide|whisper|respond\s+with)\s+(?:me\s+)?(?:the\s+)?(?:all\s+)?(?:s[e]?cret|hidden|confidential|admin|root|system|developer|master|access|auth|api)?\s*(?:code|key|token|password|passphrase|credential|prompt|instructions?|rules?|\$secret_key|session\s+cookies)/gi,
   ];
   const parts: string[] = [];
   for (const pat of patterns) {
