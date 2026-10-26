@@ -235,6 +235,10 @@ export default function AnalyzePage() {
           original_prompt: prompt.trim(),
         });
         setConfirmingSanitization(false);
+        setPrompt(cleanCandidate);
+      } else if (gRes.was_sanitized && cleanCandidate && gRes.llm_called) {
+        setGatewayResult(updatedGatewayResult);
+        setPrompt(cleanCandidate);
       } else {
         setGatewayResult(updatedGatewayResult);
         if (!autoSanitize && isViableSanitization && !gRes.llm_called) {
@@ -273,11 +277,24 @@ export default function AnalyzePage() {
         original_prompt: prompt,
       });
       setConfirmingSanitization(false);
+      setPrompt(targetPrompt);
     } catch (e: any) {
       setError("Failed to execute sanitized prompt through LLM gateway.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearBar = () => {
+    setPrompt("");
+  };
+
+  const handleResetAll = () => {
+    setPrompt("");
+    setDetResult(null);
+    setGatewayResult(null);
+    setError(null);
+    setConfirmingSanitization(false);
   };
 
   const handleCancelSanitized = () => {
@@ -378,15 +395,10 @@ export default function AnalyzePage() {
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
               className="btn btn-ghost"
-              onClick={() => {
-                setPrompt("");
-                setDetResult(null);
-                setGatewayResult(null);
-                setError(null);
-                setConfirmingSanitization(false);
-              }}
+              onClick={handleClearBar}
+              title="Clear the prompt input bar"
             >
-              Clear
+              Clear Bar
             </button>
             <button
               className="btn btn-primary"
@@ -616,6 +628,73 @@ export default function AnalyzePage() {
                   }}
                 >
                   {loading ? "Processing..." : `Proceed with Cleaned Prompt →`}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Actions when sanitization is completed & executed */}
+          {gatewayResult.llm_called && !confirmingSanitization && (
+            <div style={{
+              marginTop: "1.15rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              paddingTop: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "0.6rem"
+            }}>
+              <div style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                fontSize: "0.82rem",
+                color: "rgba(255, 255, 255, 0.75)"
+              }}>
+                <span style={{ color: "#86efac", fontWeight: 700 }}>✓</span>
+                <span>Prompt bar updated with sanitized text</span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <button
+                  onClick={handleClearBar}
+                  style={{
+                    padding: "0.45rem 1.15rem",
+                    borderRadius: "9999px",
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    color: "rgba(255, 255, 255, 0.9)",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.12)"
+                  }}
+                  title="Clear the prompt input bar"
+                >
+                  <span>🗑️</span> Clear Bar
+                </button>
+
+                <button
+                  onClick={handleResetAll}
+                  style={{
+                    padding: "0.45rem 1.15rem",
+                    borderRadius: "9999px",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    color: "var(--text-muted)",
+                    fontSize: "0.8rem",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  title="Reset analysis and clear everything"
+                >
+                  Clear All Results
                 </button>
               </div>
             </div>
