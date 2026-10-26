@@ -396,7 +396,289 @@ export default function AnalyzePage() {
         </div>
       )}
 
-      {/* Detection Result & Gateway Output */}
+      {/* ── 1. PROMPT SANITIZATION PANEL (DIRECTLY BENEATH PROMPT INPUT BAR) ── */}
+      {gatewayResult && (gatewayResult.was_sanitized || gatewayResult.can_sanitize || confirmingSanitization) && (
+        <div style={{
+          position: "relative",
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255, 255, 255, 0.18)",
+          borderRadius: "var(--r-lg, 16px)",
+          padding: "1.35rem 1.5rem",
+          marginBottom: "1.25rem",
+          boxShadow: "0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.25)",
+          overflow: "hidden"
+        }}>
+          {/* Glossy top specular reflection line */}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: "5%",
+            right: "5%",
+            height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent)"
+          }} />
+
+          {/* Header Row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem", flexWrap: "wrap", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: "linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.1) 100%)",
+                border: "1px solid rgba(251, 146, 60, 0.4)",
+                boxShadow: "0 2px 10px rgba(249, 115, 22, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1rem"
+              }}>
+                ✨
+              </div>
+              <div>
+                <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>
+                  {gatewayResult.llm_called && !confirmingSanitization ? "Prompt Sanitized & Executed" : "Prompt Sanitization Available"}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.7)", marginTop: "0.15rem" }}>
+                  {gatewayResult.sanitization_reason || "Malicious injection instructions were stripped while preserving your legitimate request."}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "0.4rem",
+              padding: "0.35rem 0.85rem", borderRadius: "9999px",
+              background: (gatewayResult.llm_called && !confirmingSanitization)
+                ? "linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)"
+                : "linear-gradient(135deg, rgba(251, 146, 60, 0.22) 0%, rgba(249, 115, 22, 0.1) 100%)",
+              border: (gatewayResult.llm_called && !confirmingSanitization)
+                ? "1px solid rgba(52, 211, 153, 0.45)"
+                : "1px solid rgba(251, 146, 60, 0.45)",
+              boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0,0,0,0.2)",
+              fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.04em",
+              color: (gatewayResult.llm_called && !confirmingSanitization) ? "#6ee7b7" : "#fdba74",
+              textTransform: "uppercase"
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: (gatewayResult.llm_called && !confirmingSanitization) ? "#34d399" : "#fb923c",
+                boxShadow: (gatewayResult.llm_called && !confirmingSanitization) ? "0 0 8px #34d399" : "0 0 8px #fb923c"
+              }} />
+              {confirmingSanitization || !gatewayResult.llm_called ? "Action Required" : "Sanitization Verified"}
+            </div>
+          </div>
+
+          {/* Blocked Malicious Part - Light Glossy Rose Glass */}
+          {gatewayResult.blocked_parts && gatewayResult.blocked_parts.length > 0 && (
+            <div style={{
+              marginBottom: "0.85rem",
+              background: "linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)",
+              border: "1px solid rgba(244, 63, 94, 0.3)",
+              borderRadius: "12px",
+              padding: "0.75rem 1rem",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(0, 0, 0, 0.12)"
+            }}>
+              <div style={{
+                fontSize: "0.72rem", fontWeight: 700, color: "#fda4af",
+                textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem",
+                display: "flex", alignItems: "center", gap: "0.35rem"
+              }}>
+                <span style={{ fontSize: "0.8rem" }}>🚫</span> Blocked / Removed Malicious Part
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {gatewayResult.blocked_parts.map((part, idx) => (
+                  <span key={idx} style={{
+                    display: "inline-flex", alignItems: "center",
+                    background: "rgba(244, 63, 94, 0.18)",
+                    border: "1px solid rgba(244, 63, 94, 0.4)",
+                    borderRadius: "8px",
+                    padding: "0.3rem 0.65rem",
+                    fontSize: "0.84rem",
+                    fontFamily: "var(--font-mono)",
+                    color: "#fecdd3",
+                    fontWeight: 500,
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15)"
+                  }}>
+                    {part}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Cleaned Executable Prompt - Light Glossy Emerald Glass */}
+          <div style={{
+            background: "linear-gradient(135deg, rgba(52, 211, 153, 0.14) 0%, rgba(16, 185, 129, 0.04) 100%)",
+            border: "1px solid rgba(52, 211, 153, 0.38)",
+            borderRadius: "12px",
+            padding: "0.85rem 1rem",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 4px 16px rgba(16, 185, 129, 0.12)"
+          }}>
+            <div style={{
+              fontSize: "0.72rem", fontWeight: 700, color: "#6ee7b7",
+              textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.4rem",
+              display: "flex", alignItems: "center", gap: "0.35rem"
+            }}>
+              <span style={{ fontSize: "0.8rem" }}>✅</span> Cleaned Executable Prompt
+            </div>
+            <div style={{
+              fontSize: "0.92rem",
+              fontFamily: "var(--font-mono)",
+              fontWeight: 600,
+              color: "#d1fae5",
+              lineHeight: 1.5,
+              wordBreak: "break-word"
+            }}>
+              {gatewayResult.sanitized_prompt || gatewayResult.final_prompt}
+            </div>
+          </div>
+
+          {/* User Confirmation & Preference Bar */}
+          {(confirmingSanitization || !gatewayResult.llm_called) && (
+            <div style={{
+              marginTop: "1.1rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.12)",
+              paddingTop: "0.95rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "0.75rem"
+            }}>
+              <label style={{
+                display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                padding: "0.4rem 0.85rem", borderRadius: "9999px",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.14)",
+                fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.85)",
+                cursor: "pointer", userSelect: "none",
+                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)"
+              }}>
+                <input
+                  type="checkbox"
+                  checked={rememberPreference}
+                  onChange={(e) => setRememberPreference(e.target.checked)}
+                  style={{ cursor: "pointer", accentColor: "#34d399" }}
+                />
+                <span>Always auto-proceed with sanitized prompt in future</span>
+              </label>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <button
+                  onClick={handleCancelSanitized}
+                  style={{
+                    padding: "0.5rem 1.1rem", borderRadius: "8px",
+                    background: "rgba(255, 255, 255, 0.07)",
+                    border: "1px solid rgba(255, 255, 255, 0.16)",
+                    color: "rgba(255, 255, 255, 0.75)",
+                    fontSize: "0.825rem", fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15)"
+                  }}
+                >
+                  Cancel Request
+                </button>
+                <button
+                  onClick={handleProceedSanitized}
+                  disabled={loading}
+                  style={{
+                    padding: "0.5rem 1.25rem", borderRadius: "8px",
+                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    border: "1px solid rgba(255, 255, 255, 0.35)",
+                    color: "#ffffff",
+                    fontSize: "0.825rem", fontWeight: 700,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    boxShadow: "0 4px 16px rgba(16, 185, 129, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.45)",
+                    transition: "all 0.2s ease",
+                    display: "flex", alignItems: "center", gap: "0.4rem"
+                  }}
+                >
+                  {loading ? "Processing..." : `Proceed with Cleaned Prompt →`}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 2. LLM RESPONSE PANEL (When executed, appears right under sanitization / input bar) ── */}
+      {gatewayResult && gatewayResult.llm_called && gatewayResult.response && !confirmingSanitization && (
+        <div style={{
+          position: "relative",
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255, 255, 255, 0.16)",
+          borderRadius: "var(--r-lg, 16px)",
+          padding: "1.35rem 1.5rem",
+          marginBottom: "1.25rem",
+          boxShadow: "0 16px 40px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2)",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            position: "absolute", top: 0, left: "5%", right: "5%", height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.5), transparent)"
+          }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1.1rem" }}>🤖</span>
+              <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>
+                LLM Response
+              </span>
+            </div>
+            <span style={{
+              fontSize: "0.75rem", fontFamily: "var(--font-mono)",
+              color: "rgba(255, 255, 255, 0.6)", background: "rgba(255, 255, 255, 0.06)",
+              padding: "0.2rem 0.6rem", borderRadius: "9999px", border: "1px solid rgba(255, 255, 255, 0.12)"
+            }}>
+              provider: {gatewayResult.llm_provider}
+            </span>
+          </div>
+          <div style={{
+            background: "rgba(0, 0, 0, 0.3)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRadius: "10px",
+            padding: "1rem 1.25rem",
+            fontSize: "0.9rem",
+            lineHeight: 1.6,
+            color: "rgba(255, 255, 255, 0.95)",
+            whiteSpace: "pre-wrap"
+          }}>
+            {typeof gatewayResult.response === "string"
+              ? gatewayResult.response
+              : JSON.stringify(gatewayResult.response, null, 2)}
+          </div>
+        </div>
+      )}
+
+      {/* ── 3. HARD BLOCK STATE (Only shown if prompt has zero sanitizable content) ── */}
+      {gatewayResult && gatewayResult.decision === "BLOCK" && !gatewayResult.can_sanitize && !gatewayResult.was_sanitized && !confirmingSanitization && (
+        <div style={{
+          position: "relative",
+          background: "linear-gradient(135deg, rgba(244, 63, 94, 0.12) 0%, rgba(244, 63, 94, 0.03) 100%)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(244, 63, 94, 0.35)",
+          borderRadius: "var(--r-lg, 16px)",
+          padding: "1.25rem 1.5rem",
+          marginBottom: "1.25rem",
+          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2)"
+        }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#fda4af", marginBottom: "0.35rem" }}>
+            🚫 Request Blocked
+          </div>
+          <div style={{ fontSize: "0.85rem", color: "rgba(255, 255, 255, 0.75)" }}>
+            LLM execution prevented. This prompt contains purely malicious injection patterns with no legitimate task content. Zero tokens were sent to the LLM provider.
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. TECHNICAL DETECTION RESULT & DIAGNOSTICS CARD ── */}
       {gatewayResult && (
         <div className="card">
           {/* Header Verdict */}
@@ -450,126 +732,6 @@ export default function AnalyzePage() {
               <span>LLM Called: <strong style={{ color: gatewayResult.llm_called && !confirmingSanitization ? "var(--success)" : "var(--danger)" }}>{gatewayResult.llm_called && !confirmingSanitization ? "true" : "false (Awaiting user)"}</strong></span>
             </div>
           </div>
-
-          {/* Request Blocked State (If BLOCK) */}
-          {gatewayResult.decision === "BLOCK" && (
-            <div style={{
-              background: "var(--danger-dim)", border: "1px solid var(--danger)",
-              borderRadius: "var(--r-md)", padding: "1.25rem", marginBottom: "1.25rem"
-            }}>
-              <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--danger)", marginBottom: "0.35rem" }}>
-                Request Blocked
-              </div>
-              <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                {gatewayResult.can_sanitize
-                  ? "Direct LLM execution prevented due to detected prompt injection patterns. Sanitization is available below to execute your safe question."
-                  : "LLM execution prevented. Zero tokens were sent to the LLM provider."}
-              </div>
-            </div>
-          )}
-
-          {/* Sanitization Breakdown & Interactive User Confirmation Panel */}
-          {(gatewayResult.was_sanitized || gatewayResult.can_sanitize) && (
-            <div style={{
-              background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.25)",
-              borderRadius: "var(--r-md)", padding: "1.25rem", marginBottom: "1.25rem"
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ fontWeight: 700, color: "#f97316", fontSize: "0.95rem" }}>
-                  {gatewayResult.llm_called ? "Prompt Sanitized & Executed" : "Prompt Sanitization Available"}
-                </div>
-                <span className="risk-badge" style={{ background: "rgba(249,115,22,0.2)", color: "#f97316" }}>
-                  {confirmingSanitization || !gatewayResult.llm_called ? "Action Required" : "Sanitization Verified"}
-                </span>
-              </div>
-
-              <div style={{ color: "var(--text-secondary)", fontSize: "0.825rem", marginBottom: "1rem" }}>
-                {gatewayResult.sanitization_reason || "Malicious instructions were identified and stripped from the prompt."}
-              </div>
-
-              {/* Blocked Malicious Part */}
-              {gatewayResult.blocked_parts && gatewayResult.blocked_parts.length > 0 && (
-                <div style={{ marginBottom: "0.85rem" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--danger)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.35rem" }}>
-                    Blocked / Removed Malicious Part
-                  </div>
-                  <div style={{
-                    background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)",
-                    borderRadius: "var(--r-sm)", padding: "0.6rem 0.85rem", color: "var(--danger)",
-                    fontFamily: "var(--font-mono)", fontSize: "0.85rem"
-                  }}>
-                    {gatewayResult.blocked_parts.join(" | ")}
-                  </div>
-                </div>
-              )}
-
-              {/* Remaining Executable Part */}
-              <div style={{ marginBottom: "1.25rem" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--success)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.35rem" }}>
-                  Cleaned Executable Prompt
-                </div>
-                <div style={{
-                  background: "rgba(163,230,53,0.12)", border: "1px solid rgba(163,230,53,0.3)",
-                  borderRadius: "var(--r-sm)", padding: "0.6rem 0.85rem", color: "var(--success)",
-                  fontFamily: "var(--font-mono)", fontSize: "0.85rem", fontWeight: 600
-                }}>
-                  {gatewayResult.sanitized_prompt || gatewayResult.final_prompt}
-                </div>
-              </div>
-
-              {/* User Confirmation Buttons & Preference */}
-              {(confirmingSanitization || !gatewayResult.llm_called) && (
-                <div style={{
-                  borderTop: "1px solid rgba(249,115,22,0.2)", paddingTop: "0.875rem",
-                  display: "flex", flexDirection: "column", gap: "0.75rem"
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", fontWeight: 500 }}>
-                      Do you want to proceed to the LLM with the cleaned prompt?
-                    </span>
-                    <label style={{
-                      display: "inline-flex", alignItems: "center", gap: "0.4rem",
-                      fontSize: "0.775rem", color: "var(--text-secondary)", cursor: "pointer", userSelect: "none"
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={rememberPreference}
-                        onChange={(e) => setRememberPreference(e.target.checked)}
-                        style={{ cursor: "pointer", accentColor: "#f97316" }}
-                      />
-                      <span>Always auto-proceed with sanitized prompt in future</span>
-                    </label>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-                    <button className="btn btn-ghost" onClick={handleCancelSanitized}>
-                      Cancel Request
-                    </button>
-                    <button className="btn btn-primary" onClick={handleProceedSanitized} disabled={loading}>
-                      {loading ? "Processing..." : `Proceed with "${gatewayResult.sanitized_prompt || gatewayResult.final_prompt}"`}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* LLM Response (If Executed / Confirmed) */}
-          {gatewayResult.llm_called && gatewayResult.response && !confirmingSanitization && (
-            <div style={{ marginBottom: "1.25rem" }}>
-              <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.6rem" }}>
-                LLM Response
-              </div>
-              <div style={{
-                background: "rgba(0, 0, 0, 0.4)", border: "1px solid var(--border)",
-                borderRadius: "var(--r-md)", padding: "1.25rem", fontSize: "0.9rem",
-                lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap"
-              }}>
-                {typeof gatewayResult.response === "string"
-                  ? gatewayResult.response
-                  : JSON.stringify(gatewayResult.response, null, 2)}
-              </div>
-            </div>
-          )}
 
           {detResult && (
             <div>
