@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div style={{ padding: "2rem", color: "#ef4444", background: "#1a2235", borderRadius: "10px", margin: "2rem", border: "1px solid #ef4444" }}>
-          <h2>⚠ UI Component Rendering Error</h2>
+          <h2>UI Component Rendering Error</h2>
           <p style={{ marginTop: "0.5rem", color: "#94a3b8" }}>
             A rendering error occurred in this view:
           </p>
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{ marginTop: "1rem", padding: "0.5rem 1rem", background: "#6366f1", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }}
           >
-            🔄 Reload View
+            Reload View
           </button>
         </div>
       );

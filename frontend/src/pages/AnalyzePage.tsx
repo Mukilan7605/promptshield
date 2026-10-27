@@ -453,14 +453,16 @@ export default function AnalyzePage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <div style={{
-                width: 36, height: 36, borderRadius: "50%",
-                background: "linear-gradient(135deg, rgba(253, 224, 71, 0.16) 0%, rgba(251, 146, 60, 0.08) 100%)",
-                border: "1px solid rgba(253, 224, 71, 0.3)",
-                boxShadow: "0 2px 12px rgba(253, 224, 71, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.35)",
+                width: 32, height: 32, borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.14)",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.25)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "1.1rem"
+                color: "#fde047"
               }}>
-                ✨
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
               </div>
               <div>
                 <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>
@@ -512,7 +514,7 @@ export default function AnalyzePage() {
                 textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.45rem",
                 display: "flex", alignItems: "center", gap: "0.4rem"
               }}>
-                <span style={{ fontSize: "0.85rem" }}>🚫</span> Blocked / Removed Malicious Part
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--danger)" }} /> Blocked / Removed Malicious Part
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                 {gatewayResult.blocked_parts.map((part, idx) => (
@@ -550,7 +552,7 @@ export default function AnalyzePage() {
               textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.45rem",
               display: "flex", alignItems: "center", gap: "0.4rem"
             }}>
-              <span style={{ fontSize: "0.85rem" }}>✅</span> Cleaned Executable Prompt
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)" }} /> Cleaned Executable Prompt
             </div>
             <div style={{
               fontSize: "0.94rem",
@@ -652,7 +654,7 @@ export default function AnalyzePage() {
                 fontSize: "0.82rem",
                 color: "rgba(255, 255, 255, 0.75)"
               }}>
-                <span style={{ color: "#86efac", fontWeight: 700 }}>✓</span>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#86efac" }} />
                 <span>Prompt bar updated with sanitized text</span>
               </div>
 
@@ -676,7 +678,7 @@ export default function AnalyzePage() {
                   }}
                   title="Clear the prompt input bar"
                 >
-                  <span>🗑️</span> Clear Bar
+                  Clear Bar
                 </button>
 
                 <button
@@ -722,7 +724,6 @@ export default function AnalyzePage() {
           }} />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.85rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-              <span style={{ fontSize: "1.15rem" }}>🤖</span>
               <span style={{ fontSize: "0.98rem", fontWeight: 700, color: "#ffffff" }}>
                 LLM Response
               </span>
@@ -767,7 +768,7 @@ export default function AnalyzePage() {
           boxShadow: "0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2)"
         }}>
           <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fbcfe8", marginBottom: "0.35rem" }}>
-            🚫 Request Blocked
+            Request Blocked
           </div>
           <div style={{ fontSize: "0.85rem", color: "rgba(255, 255, 255, 0.75)" }}>
             LLM execution prevented. This prompt contains purely malicious injection patterns with no legitimate task content. Zero tokens were sent to the LLM provider.
